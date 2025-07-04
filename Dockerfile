@@ -13,3 +13,4 @@ RUN apk add --update --no-cache \
     npm cache clean --force && \
     apk del -r npm && \
     rm -rf /var/cache/apk/*
+

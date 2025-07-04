@@ -1,0 +1,10 @@
+{
+  "components": [
+    {
+      "name": "qubership-testing-platform-helm-hook-helper",
+      "file": "./Dockerfile",
+      "context": "."
+    }
+  ],
+  "platforms": "linux/amd64"
+}
