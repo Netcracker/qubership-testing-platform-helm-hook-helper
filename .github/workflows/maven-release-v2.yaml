@@ -21,7 +21,7 @@
 # Please prepare project's pom.xml file according to https://github.com/netcracker/qubership-workflow-hub/blob/main/docs/maven-publish-pom-preparation_doc.md
 # to be able to use this workflow.
 
-name: Maven release
+name: Release Docker Image
 
 run-name: ${{ github.event.inputs.version-type }} release for ${{ github.event.repository.name }}
 
@@ -37,19 +37,6 @@ on:
           - 'patch'
         required: true
         default: 'patch'
-      profile:
-        description: 'Maven profile to use'
-        type: choice
-        options:
-          - 'github'
-          - 'central'
-        required: false
-        default: 'central'
-      mvn-args:
-        description: 'Additional maven arguments to pass (e.g. -DskipTests=true -Dmaven.javadoc.skip=true)'
-        required: false
-        default: ''
-        type: string
       build-docker:
         description: 'Build Docker image'
         required: false
@@ -64,62 +51,18 @@ jobs:
   dry-run-build:
     runs-on: ubuntu-latest
     steps:
-      - name: "Build and Publish current SNAPSHOT (dry run)"
-        uses: netcracker/qubership-workflow-hub/actions/maven-release@v1.0.1
+      - name: "Docker Build and Publish current SNAPSHOT (dry run)"
+        uses: netcracker/qubership-workflow-hub/actions/docker-action@main
         with:
-          java-version: "8"
-          version-type: ${{ github.event.inputs.version-type }}
           ref: ${{ github.ref }}
-          module: ${{ github.event.repository.name }}
-          maven-args: ${{ inputs.mvn-args }}
-          profile: ${{ inputs.profile }}
-          server-id: ${{ inputs.profile }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          maven-user: ${{ inputs.profile == 'github' && github.actor || secrets.MAVEN_USER }}
-          maven-password: ${{ inputs.profile == 'github' && secrets.GITHUB_TOKEN || secrets.MAVEN_PASSWORD }}
-          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
-          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
-          dry-run: 'true'
-  deploy:
-    needs: dry-run-build
-    if: ${{ needs.dry-run-build.result == 'success' }}
-    outputs:
-      release-version: ${{ steps.build-and-publish.outputs.release-version }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: "Prepare app token"
-        uses: actions/create-github-app-token@v1
-        id: app-token
-        with:
-          app-id: ${{ vars.GH_BUMP_VERSION_APP_ID }}
-          private-key: ${{ secrets.GH_BUMP_VERSION_APP_KEY }}
-      - name: "Build and Publish"
-        id: build-and-publish
-
-        uses: netcracker/qubership-workflow-hub/actions/maven-release@main
-        with:
-          java-version: "8"
-          version-type: ${{ github.event.inputs.version-type }}
-          ref: ${{ github.ref }}
-          module: ${{ github.event.repository.name }}
-          maven-args: ${{ inputs.mvn-args }}
-          profile: ${{ inputs.profile }}
-          server-id: ${{ inputs.profile }}
-          token: ${{ steps.app-token.outputs.token }}
-          maven-user: ${{ inputs.profile == 'github' && github.actor || secrets.MAVEN_USER }}
-          maven-password: ${{ inputs.profile == 'github' && secrets.GITHUB_TOKEN || secrets.MAVEN_PASSWORD }}
-          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
-          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
-          dry-run: 'false'
-
-      - name: Upload all Maven target directories
-        uses: actions/upload-artifact@v4
-        with:
-          name: qubership-testing-platform-helm-hook-helper
-          path: '**/target'
+          download-artifact: false
+          dry-run: true
+          component: ${{ toJson(matrix.component) }}
+          platforms: ${{ needs.load-docker-build-components.outputs.platforms }}
 
   load-docker-build-components:
-    needs: [deploy]
+    needs: dry-run-build
+    if: ${{ needs.dry-run-build.result == 'success' }}
     runs-on: ubuntu-latest
     outputs:
       component: ${{ steps.load_component.outputs.components }}
@@ -169,8 +112,7 @@ jobs:
         uses: netcracker/qubership-workflow-hub/actions/docker-action@main
         with:
           ref: v${{ needs.deploy.outputs.release-version }}
-          download-artifact: true
-          download-artifact-path: build-context
+          download-artifact: false
           dry-run: false
           component: ${{ toJson(matrix.component) }}
           platforms: ${{ needs.load-docker-build-components.outputs.platforms }}
