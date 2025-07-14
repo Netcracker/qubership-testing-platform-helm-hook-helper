@@ -7,6 +7,8 @@ RUN apk add --update --no-cache \
       nodejs-current=21.7.2-r0 \
       npm=10.2.5-r0 \
       postgresql14-client=14.17-r0 && \
+      bash=5.2.37-r0 \
+      jq=1.7.1-r0 \
     npm set prefer-dedupe=true strict-ssl=false && \
     npm install --logs-max=0 -g mongosh@2.2.5 && \
     ln -s /usr/local/bin/mongosh /usr/local/bin/mongo && \
