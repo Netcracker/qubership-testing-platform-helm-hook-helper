@@ -37,19 +37,6 @@ on:
           - 'patch'
         required: true
         default: 'patch'
-      profile:
-        description: 'Maven profile to use'
-        type: choice
-        options:
-          - 'github'
-          - 'central'
-        required: false
-        default: 'central'
-      mvn-args:
-        description: 'Additional maven arguments to pass (e.g. -DskipTests=true -Dmaven.javadoc.skip=true)'
-        required: false
-        default: ''
-        type: string
       build-docker:
         description: 'Build Docker image'
         required: false
