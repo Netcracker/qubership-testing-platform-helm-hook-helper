@@ -1,20 +1,13 @@
-# qubership-repo-template
+# Qubership Testing Platform Helm Hook Helper
 
-Click [here](https://github.com/Netcracker/qubership-repo-template/generate) to create your copy of this repository.
+This repository is created to build an auxiliary base docker image for pre-/post-deployment scripts in QSTP Services.
 
-## Installation
+## Build Process
 
-This section typically describes the process of preparing the project for use, including required dependencies and general setup steps.
+The image is built using GitHub actions for building docker images.
 
-## Build
+## Usage
 
-This section outlines the build process, tools used, and general information about preparing project artifacts.
-
-## Testing
-
-This section provides a general description of testing strategies, tools, and approaches relevant to the project.
-
-## Debug
-
-This section provides an overview of debugging approaches and tools relevant to the project.
+It is used when installing QSTP services in the HELPER_IMAGE parameter. 
+When installing, a pre-/post-hook pod will be created on this image that will perform pre-/post-actions for the service being installed. 
 
