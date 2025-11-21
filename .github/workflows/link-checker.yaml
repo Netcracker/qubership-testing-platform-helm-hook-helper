@@ -32,7 +32,6 @@ jobs:
           args: >-
             './**/*.md'
             --verbose
-            --failIfEmpty false
             --no-progress
             --user-agent 'Mozilla/5.0 (X11; Linux x86_64) Chrome/134.0.0.0'
             --retry-wait-time 60
@@ -45,4 +44,5 @@ jobs:
             --cache-exclude-status '429, 500..502'
             --max-cache-age 1d
           format: markdown
+          failIfEmpty: false
           fail: true

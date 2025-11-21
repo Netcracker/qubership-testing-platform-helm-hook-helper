@@ -8,12 +8,13 @@ The image is built using GitHub actions for building docker images.
 
 ## Usage
 
-It is used via HELPER_IMAGE parameter when installing Qubership Testing Platform services. 
+It is used via HELPER_IMAGE parameter when installing Qubership Testing Platform services.
+
 When installing, a pre-/post-hook pod will be created on this image that will perform pre-/post-actions for the service being installed.
 
 ### Usage example
 
-- Navigate to https://github.com/Netcracker/qubership-testing-platform-itf-executor repository,
+- Navigate to [https://github.com/Netcracker/qubership-testing-platform-itf-executor](https://github.com/Netcracker/qubership-testing-platform-itf-executor) repository,
 - main branch,
 - .github/deploy_templates/values-dev.yaml file
 
