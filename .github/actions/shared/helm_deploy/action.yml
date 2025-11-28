@@ -124,28 +124,6 @@ runs:
     #    ls -la
     #    cp ${{inputs.path_to_template}} ${{inputs.repository_name}}/${{inputs.path_to_chart}}
 
-    - name: Debug
-      shell: bash
-      if: always()
-      run: |
-        ls -la
-        pwd
-        cd qubership-testing-platform-environments
-        ls -la
-        cd .github
-        ls -la
-        cd deploy_templates
-        ls -la
-        pwd
-        cd ../../..
-        cd qubership-testing-platform-helm-hook-helper
-        ls -la
-        cd .github
-        ls -la
-        cd deploy_templates
-        ls -la
-        pwd
-
     - name: Replace slash in service branch
       id: replace_slash
       shell: bash
