@@ -114,19 +114,6 @@ runs:
           kubectl create -f "$file"
         done
 
-    - name: Debug
-      shell: bash
-      if: always()
-      run: |
-        ls -la
-        pwd
-        cd .github
-        ls -la
-        cd deploy_templates
-        ls -la
-        pwd
-
-
     - name: Name template
       shell: bash
       # language=bash
@@ -142,6 +129,20 @@ runs:
         ls -la
     #    ls -la
     #    cp ${{inputs.path_to_template}} ${{inputs.repository_name}}/${{inputs.path_to_chart}}
+
+    - name: Debug
+      shell: bash
+      if: always()
+      run: |
+        ls -la
+        pwd
+        cd qubership-testing-platform-environments
+        ls -la
+        cd .github
+        ls -la
+        cd deploy_templates
+        ls -la
+        pwd
 
     - name: Replace slash in service branch
       id: replace_slash
