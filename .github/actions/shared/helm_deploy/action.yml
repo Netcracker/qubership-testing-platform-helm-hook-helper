@@ -114,6 +114,19 @@ runs:
           kubectl create -f "$file"
         done
 
+    - name: Debug
+      shell: bash
+      if: always()
+      run:
+        ls -la
+        pwd
+        cd .github
+        ls -la
+        cd deploy_templates
+        ls -la
+        pwd
+
+
     - name: Name template
       shell: bash
       # language=bash
