@@ -121,8 +121,6 @@ runs:
         echo ${{inputs.path_to_template}}
         cp ${{inputs.path_to_template}} ${{inputs.repository_name}}/${{inputs.path_to_chart}}
         ls -la
-    #    ls -la
-    #    cp ${{inputs.path_to_template}} ${{inputs.repository_name}}/${{inputs.path_to_chart}}
 
     - name: Replace slash in service branch
       id: replace_slash
@@ -170,15 +168,15 @@ runs:
       if: ${{ inputs.mongo == 'enable' }}
       shell: bash
       run: |
-        helm install my-mongodb bitnami/mongodb -n ${{inputs.namespace}} \
+        helm install my-mongodb bitnami/mongodb \
           --set image.registry=docker.io \
           --set image.repository=bitnamilegacy/mongodb \
           --set image.tag=8.0.13 \
           --set auth.rootUser=root \
           --set auth.rootPassword=root
 
-        pod=$(kubectl get pods -n ${{inputs.namespace}} -o name | grep -vE 'postgres' | head -n 1 | cut -d/ -f2)
-        kubectl wait pod "$pod" -n ${{inputs.namespace}} \
+        pod=$(kubectl get pods -o name | grep -vE 'postgres' | head -n 1 | cut -d/ -f2)
+        kubectl wait pod "$pod" \
            --for=condition=Ready \
            --timeout=120s || {
            echo "❌ Pod $pod did not become ready in time"
@@ -195,12 +193,11 @@ runs:
 
         helm install kafka bitnami/kafka \
           --version 25.0.0 \
-          --namespace ${{inputs.namespace}} \
           --create-namespace \
           -f no-auth-values.yaml
 
-        pod=$(kubectl get pods -n ${{inputs.namespace}} -o name | grep -vE 'postgres|mongodb' | head -n 1 | cut -d/ -f2)
-        kubectl wait pod "$pod" -n ${{inputs.namespace}} \
+        pod=$(kubectl get pods -o name | grep -vE 'postgres|mongodb' | head -n 1 | cut -d/ -f2)
+        kubectl wait pod "$pod" \
            --for=condition=Ready \
            --timeout=300s || {
            echo "❌ Pod $pod did not become ready in time"
@@ -211,21 +208,21 @@ runs:
     - name: Install/update service with helm
       shell: bash
       run: |
-        # ▶️ ${{inputs.deploy_mode}} ${{inputs.service_name}} with Helm
+        # ▶️ ${{inputs.deploy_mode}} with Helm
         template_name=$(basename "${{inputs.path_to_template}}")
         echo $template_name
         cd ${{inputs.repository_name}}/${{inputs.path_to_chart}}
 
         if [ -n "${{ inputs.docker_tag }}" ]; then
           echo "Using docker_tag: ${{ inputs.docker_tag }}"
-          helm ${{inputs.deploy_mode}} ${{inputs.service_name}} . -f $template_name -n ${{inputs.namespace}} --set-string DOCKER_TAG=${{ inputs.docker_tag }}
+          helm ${{inputs.deploy_mode}} ${{inputs.service_name}} . -f $template_name --set-string DOCKER_TAG=${{ inputs.docker_tag }}
         else
          echo "No docker_tag provided. Using value from values-dev.yaml"
-         helm ${{inputs.deploy_mode}} ${{inputs.service_name}} . -f $template_name -n ${{inputs.namespace}}
+         helm ${{inputs.deploy_mode}} ${{inputs.service_name}} . -f $template_name
         fi
 
-        pod=$(kubectl get pods -n ${{inputs.namespace}} -o name | grep -vE 'postgres|mongodb|kafka|predeploy' | head -n 1 | cut -d/ -f2)
-        kubectl wait pod "$pod" -n ${{inputs.namespace}} \
+        pod=$(kubectl get pods -o name | grep -vE 'postgres|mongodb|kafka|predeploy' | head -n 1 | cut -d/ -f2)
+        kubectl wait pod "$pod" \
            --for=condition=Ready \
            --timeout=600s || {
            echo "❌ Pod $pod did not become ready in time"
@@ -237,4 +234,4 @@ runs:
       # language=bash
       run: |
         # ▶️ Get docker images
-        kubectl get pods -n ${{inputs.namespace}} -o go-template --template="{{range .items}}{{range .spec.containers}}{{.image}} {{end}}{{end}}"
+        kubectl get pods -o go-template --template="{{range .items}}{{range .spec.containers}}{{.image}} {{end}}{{end}}"

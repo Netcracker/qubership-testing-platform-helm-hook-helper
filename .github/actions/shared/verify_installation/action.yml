@@ -62,8 +62,8 @@ runs:
       run: |
         # ▶️ Get pods
         file_name=artifacts/${{inputs.namespace}}_get_pods.txt
-        kubectl get pods -n ${{inputs.namespace}}
-        kubectl get pods -n ${{inputs.namespace}} > $file_name
+        kubectl get pods
+        kubectl get pods > $file_name
 
     - name: Get yaml from pods
       shell: bash
@@ -130,7 +130,7 @@ runs:
             echo "⚠️ Could not fetch previous logs for $pod"
           fi
         fi
-    
+
 
     - name: Get pods
       shell: bash
