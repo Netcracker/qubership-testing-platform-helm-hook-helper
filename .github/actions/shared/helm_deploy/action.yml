@@ -117,7 +117,7 @@ runs:
     - name: Debug
       shell: bash
       if: always()
-      run:
+      run: |
         ls -la
         pwd
         cd .github
