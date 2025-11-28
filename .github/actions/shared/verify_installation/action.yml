@@ -71,11 +71,11 @@ runs:
       run: |
         # ▶️ Get yaml from pods
         file_name=artifacts/${{inputs.namespace}}_get_pods_yaml.txt
-        IFS=' ' read -ra pods <<< $(kubectl get pods --no-headers -o custom-columns=":metadata.name" -n ${{inputs.namespace}} | tr $'\n' ' ')
+        IFS=' ' read -ra pods <<< $(kubectl get pods --no-headers -o custom-columns=":metadata.name"  | tr $'\n' ' ')
         echo "Yaml files from pods: " > $file_name
         for pod in "${pods[@]}"; do
             echo $pod >> $file_name
-            kubectl get pod "$pod" -n ${{inputs.namespace}} -o yaml >> $file_name
+            kubectl get pod "$pod" -o yaml >> $file_name
         done
 
     - name: Get events from namespace
@@ -84,7 +84,7 @@ runs:
       run: |
         # ▶️ Get events from namespace
         file_name=artifacts/${{inputs.namespace}}_get_events.txt
-        kubectl events -n ${{inputs.namespace}} > $file_name
+        kubectl events > $file_name
 
     - name: Get yaml from PVC
       shell: bash
@@ -92,8 +92,8 @@ runs:
       run: |
         # ▶️ Get yaml from PVC
         file_name=artifacts/${{inputs.namespace}}_get_pvc_yaml.txt
-        kubectl get pvc -n ${{inputs.namespace}}
-        kubectl get pvc -n ${{inputs.namespace}} -o yaml > $file_name
+        kubectl get pvc
+        kubectl get pvc -o yaml > $file_name
 
     - name: Get PV from namespace
       shell: bash
@@ -101,8 +101,8 @@ runs:
       run: |
         # ▶️ Get PV from namespace
         file_name=artifacts/${{inputs.namespace}}_get_pv.txt
-        kubectl get pv | grep ${{inputs.namespace}}
-        kubectl get pv | grep ${{inputs.namespace}} > $file_name
+        kubectl get pv
+        kubectl get pv > $file_name
 
 
     - name: Get logs from all containers in pods
@@ -114,19 +114,19 @@ runs:
         IFS=' ' read -ra pods <<< $(kubectl get pods --no-headers -o custom-columns=":metadata.name" -n ${{inputs.namespace}} | tr $'\n' ' ')
         echo "Logs from all containers in pods: " > $file_name
         for pod in "${pods[@]}"; do
-            IFS=' ' read -ra containers <<< $(kubectl get pod "$pod" -n ${{inputs.namespace}} -o jsonpath="{.spec.containers[*].name}")
+            IFS=' ' read -ra containers <<< $(kubectl get pod "$pod" -o jsonpath="{.spec.containers[*].name}")
             for container in "${containers[@]}"; do
               echo $pod $container >> $file_name
-              kubectl logs "$pod" -n ${{inputs.namespace}} -c "$container" >> $file_name
+              kubectl logs "$pod" -c "$container" >> $file_name
               echo '================================================================================' >> $file_name
             done
         done
 
-        restart_count=$(kubectl get pod "$pod" -n ${{inputs.namespace}} -o jsonpath="{.status.containerStatuses[0].restartCount}")
+        restart_count=$(kubectl get pod "$pod" -o jsonpath="{.status.containerStatuses[0].restartCount}")
         if [[ "$restart_count" -gt 0 ]]; then
           echo "🔁 Previous logs (before restart) for pod: $pod"
-          kubectl get pod "$pod" -n ${{inputs.namespace}} -o yaml >> $file_name
-          if ! kubectl logs "$pod" -n ${{inputs.namespace}} --previous; then
+          kubectl get pod "$pod" -o yaml >> $file_name
+          if ! kubectl logs "$pod" --previous; then
             echo "⚠️ Could not fetch previous logs for $pod"
           fi
         fi
@@ -138,8 +138,8 @@ runs:
       run: |
         # ▶️ Get pods
         file_name=artifacts/${{inputs.namespace}}_get_pods.txt
-        kubectl get pods -n ${{inputs.namespace}}
-        kubectl get pods -n ${{inputs.namespace}} > $file_name
+        kubectl get pods
+        kubectl get pods > $file_name
 
     - name: Get logs from all containers in pods
       shell: bash
@@ -147,13 +147,13 @@ runs:
       run: |
         # ▶️ Get logs from all containers in pods
         file_name=artifacts/${{inputs.namespace}}_log_from_containers.txt
-        IFS=' ' read -ra pods <<< $(kubectl get pods --no-headers -o custom-columns=":metadata.name" -n ${{inputs.namespace}} | tr $'\n' ' ')
+        IFS=' ' read -ra pods <<< $(kubectl get pods --no-headers -o custom-columns=":metadata.name" | tr $'\n' ' ')
         echo "Logs from all containers in pods: " > $file_name
         for pod in "${pods[@]}"; do
-            IFS=' ' read -ra containers <<< $(kubectl get pod "$pod" -n ${{inputs.namespace}} -o jsonpath="{.spec.containers[*].name}")
+            IFS=' ' read -ra containers <<< $(kubectl get pod "$pod" -o jsonpath="{.spec.containers[*].name}")
             for container in "${containers[@]}"; do
               echo $pod $container >> $file_name
-              kubectl logs "$pod" -n ${{inputs.namespace}} -c "$container" >> $file_name
+              kubectl logs "$pod" -c "$container" >> $file_name
               echo '================================================================================' >> $file_name
             done
         done
