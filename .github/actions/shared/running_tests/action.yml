@@ -18,11 +18,11 @@ runs:
     - name: Port-forward service
       shell: bash
       run: |
-        kubectl get svc ${{service_name}} -n env
-        kubectl describe svc ${{service_name}} -n env
+        kubectl get svc ${{inputs.service_name}} -n env
+        kubectl describe svc ${{inputs.service_name}} -n env
         echo "🚀 Starting kubectl port-forward in background..."
 
-        kubectl port-forward svc/${{service_name}} 8080:8080 -n env > port-forward.log 2>&1 &
+        kubectl port-forward svc/${{inputs.service_name}} 8080:8080 -n env > port-forward.log 2>&1 &
         echo $! > port_forward_pid.txt
 
         for i in {1..10}; do
@@ -43,5 +43,5 @@ runs:
     - name: Run Newman
       uses: matt-ball/newman-action@v2.0.0
       with:
-        collection: ./${{repository_name}}/.github/actions/tests/collection.json
-        environment: ./${{repository_name}}/.github/actions/tests/environment.json
+        collection: ./${{inputs.repository_name}}/.github/actions/tests/collection.json
+        environment: ./${{inputs.repository_name}}/.github/actions/tests/environment.json
