@@ -1,0 +1,49 @@
+name: Postgres Service
+
+on:
+  workflow_call:
+    postgres_user:
+      postgres_user:
+        required: true
+        type: string
+      postgresql_password:
+        required: true
+        type: string
+      postgresql_database:
+        required: true
+        type: string
+      postgresql_admin_password:
+        required: true
+        type: string
+jobs:
+  start_postgres:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: centos/postgresql-96-centos7:9.6
+        ports:
+          - 5432:5432
+        env:
+          POSTGRESQL_USER: ${{ inputs.postgres_user }}
+          POSTGRESQL_PASSWORD: ${{ inputs.postgresql_password }}
+          POSTGRESQL_DATABASE: ${{ inputs.postgresql_database }}
+          POSTGRESQL_ADMIN_PASSWORD: ${{ inputs.postgresql_admin_password }}
+
+        options: >-
+          --health-cmd="pg_isready -U ${{ inputs.postgres_user }} -d ${{ inputs.postgresql_database }}"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Wait for Postgres to be ready
+        run: |
+          for i in {1..30}; do
+            if pg_isready -h localhost -U ${{ inputs.postgres_user }} -d ${{ inputs.postgresql_database }}; then
+              echo "Postgres is ready"
+              break
+            fi
+            echo "Waiting for Postgres..."
+            sleep 5
+          done
