@@ -37,6 +37,13 @@ jobs:
           --health-retries=5
 
     steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          ref: '${{inputs.service_branch}}'
+          repository: 'Netcracker/${{inputs.repository_name}}'
+          path: '${{inputs.repository_name}}'
+
       - name: Wait for Postgres to be ready
         run: |
           for i in {1..30}; do
