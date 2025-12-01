@@ -13,11 +13,11 @@ runs:
     - name: Port-forward service
       shell: bash
       run: |
-        kubectl get svc atp-environments -n env
-        kubectl describe svc atp-environments -n env
+        kubectl get svc ${{service_name}} -n env
+        kubectl describe svc ${{service_name}} -n env
         echo "🚀 Starting kubectl port-forward in background..."
 
-        kubectl port-forward svc/atp-environments 8080:8080 -n env > port-forward.log 2>&1 &
+        kubectl port-forward svc/${{service_name}} 8080:8080 -n env > port-forward.log 2>&1 &
         echo $! > port_forward_pid.txt
 
         for i in {1..10}; do
