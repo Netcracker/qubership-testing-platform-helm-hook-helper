@@ -48,4 +48,4 @@ jobs:
       - name: Create uuid-ossp extension
         run: |
           sudo apt-get update && sudo apt-get install -y postgresql-client
-          PGPASSWORD=${{ inputs.postgresql_admin_password }} psql -h localhost -U ${{ inputs.postgresql_user }} -d ${{ inputs.postgresql_database }} -c 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'
+          PGPASSWORD=${{ inputs.postgresql_admin_password }} psql -h localhost -U postgres -d ${{ inputs.postgresql_database }} -c 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'
