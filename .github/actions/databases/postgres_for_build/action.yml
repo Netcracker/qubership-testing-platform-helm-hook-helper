@@ -1,0 +1,55 @@
+name: "Start PostgreSQL Service"
+description: "Runs a PostgreSQL Docker container and waits for readiness"
+inputs:
+  postgresql_user:
+    required: true
+    type: string
+
+  postgresql_password:
+    required: true
+    type: string
+
+  postgresql_database:
+    required: true
+    type: string
+
+  postgresql_admin_password:
+    required: true
+    type: string
+
+runs:
+  using: "composite"
+  steps:
+    - name: Start Postgres
+      shell: bash
+      run: |
+        set -e
+
+        echo "Starting PostgreSQL Docker container..."
+
+        docker run -d \
+          --name pg_service \
+          -e POSTGRESQL_USER="${{ inputs.postgresql_user }}" \
+          -e POSTGRESQL_PASSWORD="${{ inputs.postgresql_password }}" \
+          -e POSTGRESQL_DATABASE="${{ inputs.postgresql_database }}" \
+          -e POSTGRESQL_ADMIN_PASSWORD="${{ inputs.postgresql_admin_password }}" \
+          -p 5432:5432 \
+          centos/postgresql-96-centos7:9.6
+
+    - name: Wait for Postgres to be ready
+      shell: bash
+      run: |
+        for i in {1..30}; do
+          docker exec pg_service pg_isready -U "${{ inputs.postgresql_database }}" -d "${{ inputs.postgresql_database }}" && break
+          echo "Waiting for Postgres..."
+          sleep 2
+        done
+
+    - name: Create uuid-ossp extension
+      shell: bash
+      run: |
+        docker exec -e PGPASSWORD=${{ inputs.postgresql_admin_password }} pg_service psql -h localhost -U postgres -d ${{ inputs.postgresql_database }} -c 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'
+
+
+
+
