@@ -40,9 +40,12 @@ runs:
       shell: bash
       run: |
         for i in {1..30}; do
-          docker exec pg_service pg_isready -U "${{ inputs.postgresql_database }}" -d "${{ inputs.postgresql_database }}" && break
+          if docker exec pg_service pg_isready -U "${{ inputs.postgresql_database }}" -d "${{ inputs.postgresql_database }}"; then
+            echo "Postgres is ready"
+            break
+          fi
           echo "Waiting for Postgres..."
-          sleep 2
+          sleep 5
         done
 
     - name: Create uuid-ossp extension
