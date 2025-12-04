@@ -188,7 +188,7 @@ runs:
       if: ${{ inputs.kafka == 'enable' }}
       shell: bash
       run: |
-        cd ${{inputs.repository_name}}/.github/deploy_templates/
+        cd qubership-testing-platform-helm-hook-helper/.github/templates/
         ls -la
 
         helm install kafka bitnami/kafka \
