@@ -32,7 +32,7 @@ runs:
       shell: bash
       run: |
         for i in {1..30}; do
-          if cqlsh -e "DESCRIBE keyspaces" > /dev/null 2>&1; then
+          if docker exec cassandra bash -c "cqlsh -e 'describe keyspaces'" >/dev/null 2>&1; then
             echo "Cassandra is ready"
             break
           fi

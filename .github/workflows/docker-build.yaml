@@ -71,6 +71,17 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
+      - name: Replace slash in service branch
+        id: replace_slash
+        run: |
+          service_branch="$GITHUB_REF_NAME"
+
+          if [[ "$service_branch" == *"/"* ]]; then
+            service_branch="${service_branch//\//_}"
+          fi
+          echo "Branch is: $service_branch"
+          echo "SERVICE_BRANCH=$service_branch" >> $GITHUB_ENV
+
       - name: Metadata
         id: metadata
         uses: netcracker/qubership-workflow-hub/actions/metadata-action@3e428f45132119ce49d90f3770a45d4fe1d1078d #v2.0.4
