@@ -37,7 +37,7 @@ jobs:
       platforms: ${{ steps.load_component.outputs.platforms }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           persist-credentials: false
 
@@ -67,6 +67,7 @@ jobs:
           echo "platforms=${platforms}" >> $GITHUB_OUTPUT
 
   tag_version:
+    needs: [load-docker-build-components]
     runs-on: ubuntu-latest
     outputs:
       release-version: ${{ steps.release.outputs.RELEASE_VERSION }}
@@ -90,7 +91,7 @@ jobs:
       fail-fast: false
       matrix:
         component: ${{ fromJson(needs.load-docker-build-components.outputs.component) }}
-    needs: [ load-docker-build-components ]
+    needs: [ tag_version, github-release]
     steps:
       - name: "Docker Build"
         id: docker_build
@@ -104,8 +105,8 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
   github-release:
-    needs: [deploy]
-    if: ${{ needs.deploy.result == 'success' }}
+    needs: [load-docker-build-components]
+    if: ${{ needs.load-docker-build-components.result == 'success' }}
     uses: netcracker/qubership-workflow-hub/.github/workflows/release-drafter.yml@de43c4115d6d3b1547060e7ef2a137aa9ab60fc1 #v1.0.5
     with:
       version: ${{ needs.deploy.outputs.release-version }}
