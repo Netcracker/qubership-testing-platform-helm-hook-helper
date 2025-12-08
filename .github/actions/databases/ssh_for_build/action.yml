@@ -1,5 +1,5 @@
-name: "Start MongoDB Service"
-description: "Starts a MongoDB Docker container"
+name: "Start SSH Server"
+description: "Starts a SSH Server"
 
 runs:
   using: "composite"
