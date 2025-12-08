@@ -1,21 +1,5 @@
 name: "Start Cassandra Service"
 description: "Runs a Cassandra Docker container"
-inputs:
-  postgresql_user:
-    required: true
-    type: string
-
-  postgresql_password:
-    required: true
-    type: string
-
-  postgresql_database:
-    required: true
-    type: string
-
-  postgresql_admin_password:
-    required: true
-    type: string
 
 runs:
   using: "composite"
