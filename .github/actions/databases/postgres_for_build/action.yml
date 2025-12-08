@@ -1,5 +1,5 @@
 name: "Start PostgreSQL Service"
-description: "Runs a PostgreSQL Docker container and waits for readiness"
+description: "Runs a PostgreSQL Docker container"
 inputs:
   postgresql_user:
     required: true
@@ -20,7 +20,7 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Start Postgres
+    - name: Start Postgres container
       shell: bash
       run: |
         set -e

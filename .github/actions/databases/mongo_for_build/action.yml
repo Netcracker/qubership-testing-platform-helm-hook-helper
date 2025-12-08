@@ -1,0 +1,40 @@
+name: "Start MongoDB Service"
+description: "Starts a MongoDB Docker container"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Start MongoDB container
+      shell: bash
+      run: |
+        set -e
+
+        docker run -d \
+          --name mongo \
+          -e MONGO_INITDB_ROOT_USERNAME="root" \
+          -e MONGO_INITDB_ROOT_PASSWORD="root" \
+          -p 27017:27017 \
+          mongo:4.2 --bind_ip_all
+
+    - name: Wait for MongoDB to be healthy
+      shell: bash
+      run: |
+        set -e
+        echo "Waiting for MongoDB..."
+
+        for i in {1..10}; do
+          if docker exec mongo mongo \
+            --username "${{ inputs.root_username }}" \
+            --password "${{ inputs.root_password }}" \
+            --authenticationDatabase admin \
+            --eval "db.runCommand({ ping: 1 })" >/dev/null 2>&1; then
+              echo "MongoDB is healthy"
+              exit 0
+          fi
+          echo "Retry $i/10..."
+          sleep 5
+        done
+
+        echo "MongoDB failed health check"
+        exit 1
+
