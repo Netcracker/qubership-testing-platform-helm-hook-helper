@@ -110,7 +110,6 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
   github-release:
-    needs: [load-docker-build-components]
     if: ${{ needs.load-docker-build-components.result == 'success' }}
     uses: netcracker/qubership-workflow-hub/.github/workflows/release-drafter.yml@de43c4115d6d3b1547060e7ef2a137aa9ab60fc1 #v1.0.5
     with:
