@@ -43,7 +43,7 @@ jobs:
 
       - name: Load Docker Configuration
         id: load_component
-        run:  |
+        run: |
           verify=$(cat "$GITHUB_WORKSPACE/.github/docker-build-config.json" | jq '
           def verify_structure:
           .components as $components
@@ -66,16 +66,21 @@ jobs:
           echo "components=${components}" >> $GITHUB_OUTPUT
           echo "platforms=${platforms}" >> $GITHUB_OUTPUT
 
-  tag_version:
-    needs: [load-docker-build-components]
+  tag-version:
+    needs: [ load-docker-build-components ]
     runs-on: ubuntu-latest
     outputs:
       release-version: ${{ steps.release.outputs.RELEASE_VERSION }}
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          persist-credentials: false
+
       - name: "Release"
         id: release
         run: |
-          . ${GITHUB_ACTION_PATH}/action-script.sh
+          . .github/workflows/action-script.sh
           set_release_version
         shell: bash
         env:
@@ -91,13 +96,13 @@ jobs:
       fail-fast: false
       matrix:
         component: ${{ fromJson(needs.load-docker-build-components.outputs.component) }}
-    needs: [ tag_version, github-release]
+    needs: [ tag-version ]
     steps:
       - name: "Docker Build"
         id: docker_build
-        uses: netcracker/qubership-workflow-hub/actions/docker-action@3e428f45132119ce49d90f3770a45d4fe1d1078d #v2.0.4
+        uses: netcracker/qubership-workflow-hub/actions/docker-action@396774180000abdb825cbf150b56cc59c6913db8 #v2.0.5
         with:
-          ref: v${{ needs.deploy.outputs.release-version }}
+          ref: v${{ needs.tag-version.outputs.release-version }}
           dry-run: false
           component: ${{ toJson(matrix.component) }}
           platforms: ${{ needs.load-docker-build-components.outputs.platforms }}
@@ -105,9 +110,9 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
   github-release:
-    needs: [load-docker-build-components]
+    needs: [ tag-version ]
     if: ${{ needs.load-docker-build-components.result == 'success' }}
     uses: netcracker/qubership-workflow-hub/.github/workflows/release-drafter.yml@de43c4115d6d3b1547060e7ef2a137aa9ab60fc1 #v1.0.5
     with:
-      version: ${{ needs.deploy.outputs.release-version }}
+      version: ${{ needs.tag-version.outputs.release-version }}
       publish: true
