@@ -74,6 +74,7 @@ jobs:
         id: replace_slash
         run: |
           service_branch="$GITHUB_REF_NAME"
+
           if [[ "$service_branch" == *"/"* ]]; then
             service_branch="${service_branch//\//_}"
           fi
@@ -82,7 +83,7 @@ jobs:
 
       - name: Metadata
         id: metadata
-        uses: netcracker/qubership-workflow-hub/actions/metadata-action@3e428f45132119ce49d90f3770a45d4fe1d1078d #v2.0.4
+        uses: netcracker/qubership-workflow-hub/actions/metadata-action@396774180000abdb825cbf150b56cc59c6913db8 #v2.0.5
         with:
           default-template: '{{ref-name}}-{{timestamp}}'
 
@@ -92,7 +93,7 @@ jobs:
           submodules: recursive
 
       - name: Build and Publish Docker Image
-        uses: netcracker/qubership-workflow-hub/actions/docker-action@3e428f45132119ce49d90f3770a45d4fe1d1078d #v2.0.4
+        uses: netcracker/qubership-workflow-hub/actions/docker-action@396774180000abdb825cbf150b56cc59c6913db8 #v2.0.5
         with:
           ref: ${{ github.ref }}
           tags: ${{steps.metadata.outputs.result}}, ${{ github.service_branch }}_latest
