@@ -54,6 +54,7 @@ jobs:
           fi
           echo "components=${components}" >> $GITHUB_OUTPUT
           echo "platforms=${platforms}" >> $GITHUB_OUTPUT
+
   build-and-push:
     permissions:
       contents: read

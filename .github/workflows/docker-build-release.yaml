@@ -43,7 +43,7 @@ jobs:
 
       - name: Load Docker Configuration
         id: load_component
-        run:  |
+        run: |
           verify=$(cat "$GITHUB_WORKSPACE/.github/docker-build-config.json" | jq '
           def verify_structure:
           .components as $components
@@ -67,6 +67,11 @@ jobs:
           echo "platforms=${platforms}" >> $GITHUB_OUTPUT
           echo "components=${components}"
           echo "platforms=${platforms}"
+          {
+            echo 'var<<EOF'
+            echo "$components"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
 
   github-release:
     needs: [load-docker-build-components]
@@ -96,9 +101,6 @@ jobs:
         env:
           VERSION_TYPE: ${{ inputs.version-type }}
           DRY_RUN: ${{ inputs.dry-run }}
-
-      - name: DEBUG GITHUB_OUTPUT
-        run: cat $GITHUB_OUTPUT
 
   docker-build:
     permissions:
