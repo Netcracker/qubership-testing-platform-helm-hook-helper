@@ -1,0 +1,47 @@
+name: "Test run Action"
+
+inputs:
+  repository_name:
+    description: |
+      Service repository name (without organization prefix)
+      Example: 'qubership-consul' for https://github.com/Netcracker/qubership-consul
+    required: true
+
+  service_name:
+    description: |
+      Service name
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Port-forward service
+      shell: bash
+      run: |
+        kubectl get svc ${{inputs.service_name}} -n env
+        kubectl describe svc ${{inputs.service_name}} -n env
+        echo "🚀 Starting kubectl port-forward in background..."
+
+        kubectl port-forward svc/${{inputs.service_name}} 8080:8080 -n env > port-forward.log 2>&1 &
+        echo $! > port_forward_pid.txt
+
+        for i in {1..10}; do
+          if nc -z localhost 8080; then
+            echo "✅ Port-forward is working"
+            break
+          fi
+          echo "⏳ Waiting for port-forward..."
+          sleep 2
+        done
+
+        if ! nc -z localhost 8080; then
+          echo "❌ Port-forward did not start in time"
+          cat port-forward.log
+          exit 1
+        fi
+
+    - name: Run Newman
+      uses: matt-ball/newman-action@v2.0.0
+      with:
+        collection: ./${{inputs.repository_name}}/.github/actions/tests/collection.json
+        environment: ./${{inputs.repository_name}}/.github/actions/tests/environment.json

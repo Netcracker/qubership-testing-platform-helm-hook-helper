@@ -1,0 +1,25 @@
+name: "Start Cassandra Service"
+description: "Runs a Cassandra Docker container"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Start Cassandra container
+      shell: bash
+      run: |
+        docker run -d \
+          --name cassandra \
+          -p 9042:9042 \
+          cassandra:3.11.6
+
+    - name: Wait for Cassandra to be ready
+      shell: bash
+      run: |
+        for i in {1..30}; do
+          if docker exec cassandra bash -c "cqlsh -e 'describe keyspaces'" >/dev/null 2>&1; then
+            echo "Cassandra is ready"
+            break
+          fi
+          echo "Waiting for Cassandra..."
+          sleep 5
+        done

@@ -1,0 +1,51 @@
+name: "Postgres Service"
+
+on:
+  workflow_call:
+    inputs:
+      postgresql_user:
+        required: true
+        type: string
+      postgresql_password:
+        required: true
+        type: string
+      postgresql_database:
+        required: true
+        type: string
+      postgresql_admin_password:
+        required: true
+        type: string
+
+jobs:
+  start_postgres:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: centos/postgresql-96-centos7:9.6
+        ports:
+          - 5432:5432
+        env:
+          POSTGRESQL_USER: ${{ inputs.postgresql_user }}
+          POSTGRESQL_PASSWORD: ${{ inputs.postgresql_password }}
+          POSTGRESQL_DATABASE: ${{ inputs.postgresql_database }}
+          POSTGRESQL_ADMIN_PASSWORD: ${{ inputs.postgresql_admin_password }}
+        options: >-
+          --health-cmd="pg_isready -U ${{ inputs.postgresql_user }} -d ${{ inputs.postgresql_database }}"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Wait for Postgres to be ready
+        run: |
+          for i in {1..30}; do
+            pg_isready -U "${{ inputs.postgresql_user }}" -d "${{ inputs.postgresql_database }}" && break
+            echo "Waiting for Postgres..."
+            sleep 2
+          done
+
+      - name: Create uuid-ossp extension
+        run: |
+          sudo apt-get update && sudo apt-get install -y postgresql-client
+          PGPASSWORD=${{ inputs.postgresql_admin_password }} psql -h localhost -U postgres -d ${{ inputs.postgresql_database }} -c 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'

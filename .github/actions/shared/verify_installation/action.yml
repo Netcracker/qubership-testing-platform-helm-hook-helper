@@ -1,0 +1,130 @@
+name: 'Verify Installation Action'
+description: 'A GitHub Action to verify Kubernetes deployments including status checks, log collection, and test validation.'
+inputs:
+  namespace:
+    description: |
+      Kubernetes namespace for service installation
+    required: true
+
+  service_branch:
+    description: |
+      Branch in service repository
+    required: false
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Create folder for artifacts
+      shell: bash
+      # language=bash
+      run: mkdir -p artifacts
+
+    - name: Initialize error flag
+      shell: bash
+      # language=bash
+      run: echo "ERROR_FLAG=false" >> $GITHUB_ENV
+
+    - name: Get pods
+      shell: bash
+      # language=bash
+      run: |
+        # ▶️ Get pods
+        file_name=artifacts/${{inputs.namespace}}_get_pods.txt
+        kubectl get pods
+        kubectl get pods > $file_name
+
+    - name: Get yaml from pods
+      shell: bash
+      # language=bash
+      run: |
+        # ▶️ Get yaml from pods
+        file_name=artifacts/${{inputs.namespace}}_get_pods_yaml.txt
+        IFS=' ' read -ra pods <<< $(kubectl get pods --no-headers -o custom-columns=":metadata.name"  | tr $'\n' ' ')
+        echo "Yaml files from pods: " > $file_name
+        for pod in "${pods[@]}"; do
+            echo $pod >> $file_name
+            kubectl get pod "$pod" -o yaml >> $file_name
+        done
+
+    - name: Get events from namespace
+      shell: bash
+      # language=bash
+      run: |
+        # ▶️ Get events from namespace
+        file_name=artifacts/${{inputs.namespace}}_get_events.txt
+        kubectl events > $file_name
+
+    - name: Get yaml from PVC
+      shell: bash
+      # language=bash
+      run: |
+        # ▶️ Get yaml from PVC
+        file_name=artifacts/${{inputs.namespace}}_get_pvc_yaml.txt
+        kubectl get pvc
+        kubectl get pvc -o yaml > $file_name
+
+    - name: Get PV from namespace
+      shell: bash
+      # language=bash
+      run: |
+        # ▶️ Get PV from namespace
+        file_name=artifacts/${{inputs.namespace}}_get_pv.txt
+        kubectl get pv
+        kubectl get pv > $file_name
+
+
+    - name: Get logs from all containers in pods
+      shell: bash
+      # language=bash
+      run: |
+        # ▶️ Get logs from all containers in pods
+        file_name=artifacts/${{inputs.namespace}}_log_from_containers.txt
+        IFS=' ' read -ra pods <<< $(kubectl get pods --no-headers -o custom-columns=":metadata.name" -n ${{inputs.namespace}} | tr $'\n' ' ')
+        echo "Logs from all containers in pods: " > $file_name
+        for pod in "${pods[@]}"; do
+            IFS=' ' read -ra containers <<< $(kubectl get pod "$pod" -o jsonpath="{.spec.containers[*].name}")
+            for container in "${containers[@]}"; do
+              echo $pod $container >> $file_name
+              kubectl logs "$pod" -c "$container" >> $file_name
+              echo '================================================================================' >> $file_name
+            done
+        done
+
+        restart_count=$(kubectl get pod "$pod" -o jsonpath="{.status.containerStatuses[0].restartCount}")
+        if [[ "$restart_count" -gt 0 ]]; then
+          echo "🔁 Previous logs (before restart) for pod: $pod"
+          kubectl get pod "$pod" -o yaml >> $file_name
+          if ! kubectl logs "$pod" --previous; then
+            echo "⚠️ Could not fetch previous logs for $pod"
+          fi
+        fi
+
+    - name: Generate artifact name
+      if: always()
+      shell: bash
+      # language=bash
+      run: |
+        # ▶️ Generate artifact name
+        release_name=$(echo ${{inputs.service_branch}})
+        if [[ $release_name ]]; then
+          release_name=$(echo "_$release_name" | tr '/' '_')
+        fi
+        ARTIFACT_NAME=${{github.job}}_${{inputs.namespace}}${release_name}_artifacts_$(date -u +'%Y%m%d%H%M%S')
+        echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_ENV
+
+    - name: Upload artifact
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      with:
+        name: ${{env.ARTIFACT_NAME}}
+        path: artifacts/
+
+    - name: Check job status
+      shell: bash
+      # language=bash
+      run: |
+        echo "${{ env.ERROR_FLAG }}"
+        if [ "${{ env.ERROR_FLAG }}" == 'true' ]; then
+          echo "Service was installed with errors!"
+          exit 1
+        fi

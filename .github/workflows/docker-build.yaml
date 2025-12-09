@@ -1,0 +1,63 @@
+name: Build and Publish Docker Image
+
+on:
+  push:
+    branches-ignore:
+      - "**release*"
+      - "prettier/**"
+      - "dependabot/**"
+    paths-ignore:
+      - "docs/**"
+      - "README.md"
+      - ".github/**"
+  workflow_dispatch: {}
+  pull_request:
+    branches: [main]
+    types:
+      [opened, reopened, synchronize]
+
+permissions: {}
+
+jobs:
+  build-and-push:
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Replace slash in service branch
+        id: replace_slash
+        run: |
+          service_branch="$GITHUB_REF_NAME"
+
+          if [[ "$service_branch" == *"/"* ]]; then
+            service_branch="${service_branch//\//_}"
+          fi
+          echo "Branch is: $service_branch"
+          echo "SERVICE_BRANCH=$service_branch" >> $GITHUB_ENV
+
+      - name: Metadata
+        id: metadata
+        uses: netcracker/qubership-workflow-hub/actions/metadata-action@3e428f45132119ce49d90f3770a45d4fe1d1078d #v2.0.4
+        with:
+          default-template: '{{ref-name}}-{{timestamp}}'
+
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          submodules: recursive
+
+      - name: Build and Publish Docker Image
+        uses: netcracker/qubership-workflow-hub/actions/docker-action@3e428f45132119ce49d90f3770a45d4fe1d1078d #v2.0.4
+        with:
+          ref: ${{ github.ref }}
+          tags: ${{steps.metadata.outputs.result}}, ${{ github.service_branch }}_latest
+          component: '[{"name": "qubership-testing-platform-helm-hook-helper", "file": "./Dockerfile", "context": "."}]'
+          dry-run: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
