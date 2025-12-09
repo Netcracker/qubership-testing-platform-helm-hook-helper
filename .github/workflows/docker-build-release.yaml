@@ -65,6 +65,8 @@ jobs:
           fi
           echo "components=${components}" >> $GITHUB_OUTPUT
           echo "platforms=${platforms}" >> $GITHUB_OUTPUT
+          echo "components=${components}"
+          echo "platforms=${platforms}"
 
   github-release:
     needs: [load-docker-build-components]
