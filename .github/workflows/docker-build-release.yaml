@@ -75,6 +75,7 @@ jobs:
       - name: "Release"
         id: release
         run: |
+          ls -la
           . ${GITHUB_ACTION_PATH}/.github/action-script.sh
           set_release_version
         shell: bash
