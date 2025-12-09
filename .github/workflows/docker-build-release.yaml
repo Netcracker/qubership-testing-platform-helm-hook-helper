@@ -97,6 +97,9 @@ jobs:
           VERSION_TYPE: ${{ inputs.version-type }}
           DRY_RUN: ${{ inputs.dry-run }}
 
+      - name: DEBUG GITHUB_OUTPUT
+        run: cat $GITHUB_OUTPUT
+
   docker-build:
     permissions:
       contents: write
