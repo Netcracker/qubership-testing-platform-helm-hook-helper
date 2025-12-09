@@ -76,6 +76,10 @@ jobs:
         id: release
         run: |
           ls -la
+          cd qubership-testing-platform-helm-hook-helper/
+          ls -la
+          cd .github/
+          ls -la
           . ${GITHUB_ACTION_PATH}/.github/action-script.sh
           set_release_version
         shell: bash
