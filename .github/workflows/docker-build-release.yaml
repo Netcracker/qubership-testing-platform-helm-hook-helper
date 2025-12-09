@@ -80,7 +80,7 @@ jobs:
       - name: "Release"
         id: release
         run: |
-          . ${GITHUB_ACTION_PATH}/.github/action-script.sh
+          . .github/action-script.sh
           set_release_version
         shell: bash
         env:
