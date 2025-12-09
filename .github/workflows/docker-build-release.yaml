@@ -74,7 +74,7 @@ jobs:
       version: ${{ needs.deploy.outputs.release-version }}
       publish: true
 
-  tag_version:
+  tag-version:
     needs: [github-release]
     runs-on: ubuntu-latest
     outputs:
@@ -104,11 +104,11 @@ jobs:
       fail-fast: false
       matrix:
         component: ${{ fromJson(needs.load-docker-build-components.outputs.component) }}
-    needs: [ tag_version ]
+    needs: [ tag-version ]
     steps:
       - name: "Docker Build"
         id: docker_build
-        uses: netcracker/qubership-workflow-hub/actions/docker-action@3e428f45132119ce49d90f3770a45d4fe1d1078d #v2.0.4
+        uses: netcracker/qubership-workflow-hub/actions/docker-action@396774180000abdb825cbf150b56cc59c6913db8 #v2.0.5
         with:
           ref: v${{ needs.deploy.outputs.release-version }}
           dry-run: false
