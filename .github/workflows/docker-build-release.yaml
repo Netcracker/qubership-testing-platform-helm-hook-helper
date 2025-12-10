@@ -102,6 +102,12 @@ jobs:
         component: ${{ fromJson(needs.load-docker-build-components.outputs.component) }}
     needs: [ get-version, load-docker-build-components ]
     steps:
+      - name: Checkout code
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          persist-credentials: false
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+
       - name: Set up authentication
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -113,7 +119,6 @@ jobs:
           git config --global user.name "$ACTOR"
           git config --global user.email "$ACTOR@users.noreply.github.com"
           git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/$REPOSITORY
-
 
       - name: "Docker Build"
         id: docker_build
@@ -131,5 +136,5 @@ jobs:
     if: ${{ needs.load-docker-build-components.result == 'success' }}
     uses: netcracker/qubership-workflow-hub/.github/workflows/release-drafter.yml@de43c4115d6d3b1547060e7ef2a137aa9ab60fc1 #v1.0.5
     with:
-      version: ${{ needs.get-version.outputs.NEW_TAG }}
+      tag: ${{ needs.get-version.outputs.NEW_TAG }}
       publish: true
