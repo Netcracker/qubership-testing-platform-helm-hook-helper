@@ -109,7 +109,7 @@ jobs:
           REPOSITORY: ${{ github.event.repository.name }}
         run: |
 
-          echo "Version from previous job: ${{ needs.get_version.outputs.new_tag }}"
+          echo "Version from previous job: ${{ needs.get-version.outputs.new_tag }}"
           git config --global user.name "$ACTOR"
           git config --global user.email "$ACTOR@users.noreply.github.com"
           git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/$REPOSITORY
