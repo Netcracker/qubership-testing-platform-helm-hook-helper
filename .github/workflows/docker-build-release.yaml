@@ -74,6 +74,7 @@ jobs:
         run: |
           echo "Check current tag"
           TAG=$(git tag --list --sort=-v:refname | head -n 1)
+          echo "Сurrent tag: $TAG"
 
           if [[ -z "$TAG" ]]; then
             NEW_TAG="1.0.0"
@@ -97,7 +98,7 @@ jobs:
       fail-fast: false
       matrix:
         component: ${{ fromJson(needs.load-docker-build-components.outputs.component) }}
-    needs: [ get-version ]
+    needs: [ get-version, load-docker-build-components ]
     steps:
       - name: "Docker Build"
         id: docker_build
