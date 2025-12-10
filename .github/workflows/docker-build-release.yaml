@@ -106,7 +106,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ACTOR: ${{ github.actor }}
-          REPOSITORY: ${{ github.event.repository.name }}
+          REPOSITORY: 'Netcracker/qubership-testing-platform-helm-hook-helper'
         run: |
 
           echo "Version from previous job: ${{ needs.get-version.outputs.new_tag }}"
