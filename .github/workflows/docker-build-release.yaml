@@ -14,16 +14,6 @@ on:
           - 'patch'
         required: true
         default: 'patch'
-      build-docker:
-        description: 'Build Docker image'
-        required: false
-        default: false
-        type: boolean
-      dry-run:
-        description: "Dry run flag"
-        required: false
-        default: "false"
-        type: string
 
 permissions:
   contents: write
@@ -66,26 +56,37 @@ jobs:
           echo "components=${components}" >> $GITHUB_OUTPUT
           echo "platforms=${platforms}" >> $GITHUB_OUTPUT
 
-  tag-version:
-    needs: [ load-docker-build-components ]
+  get-version:
+    name: Get latest tag
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
-      release-version: ${{ steps.release.outputs.RELEASE_VERSION }}
+      new_tag: ${{ steps.calc.outputs.new_tag }}
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          persist-credentials: false
+          fetch-depth: 0
 
-      - name: "Release"
-        id: release
+      - name: Calculate new version
+        id: calc
         run: |
-          . .github/workflows/action-script.sh
-          set_release_version
-        shell: bash
-        env:
-          VERSION_TYPE: ${{ inputs.version-type }}
-          DRY_RUN: ${{ inputs.dry-run }}
+          echo "Check current tag"
+          TAG=$(git tag --list --sort=-v:refname | head -n 1)
+
+          if [[ -z "$TAG" ]]; then
+            NEW_TAG="1.0.0"
+          else
+            MAJOR=$(echo $TAG | cut -d. -f1)
+            MINOR=$(echo $TAG | cut -d. -f2)
+            PATCH=$(echo $TAG | cut -d. -f3)
+            PATCH=$((PATCH + 1))
+            NEW_TAG="$MAJOR.$MINOR.$PATCH"
+          fi
+
+          echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+          echo "New version will be: $NEW_TAG"
 
   docker-build:
     permissions:
@@ -96,13 +97,13 @@ jobs:
       fail-fast: false
       matrix:
         component: ${{ fromJson(needs.load-docker-build-components.outputs.component) }}
-    needs: [ tag-version ]
+    needs: [ get-version ]
     steps:
       - name: "Docker Build"
         id: docker_build
         uses: netcracker/qubership-workflow-hub/actions/docker-action@396774180000abdb825cbf150b56cc59c6913db8 #v2.0.5
         with:
-          ref: v${{ needs.tag-version.outputs.release-version }}
+          ref: v${{ needs.get-version.outputs.new_tag }}
           dry-run: false
           component: ${{ toJson(matrix.component) }}
           platforms: ${{ needs.load-docker-build-components.outputs.platforms }}
@@ -110,9 +111,9 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
   github-release:
-    needs: [ tag-version ]
+    needs: [ load-docker-build-components ]
     if: ${{ needs.load-docker-build-components.result == 'success' }}
     uses: netcracker/qubership-workflow-hub/.github/workflows/release-drafter.yml@de43c4115d6d3b1547060e7ef2a137aa9ab60fc1 #v1.0.5
     with:
-      version: ${{ needs.tag-version.outputs.release-version }}
+      version: ${{ needs.get-version.outputs.new_tag }}
       publish: true
