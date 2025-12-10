@@ -106,11 +106,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ACTOR: ${{ github.actor }}
-          REPOSITORY: ${{ github.repository }}
+          REPOSITORY: ${{ github.event.repository.name }}
         run: |
+
+          echo "Version from previous job: ${{ needs.get_version.outputs.new_tag }}"
           git config --global user.name "$ACTOR"
           git config --global user.email "$ACTOR@users.noreply.github.com"
           git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/$REPOSITORY
+
 
       - name: "Docker Build"
         id: docker_build
@@ -128,5 +131,5 @@ jobs:
     if: ${{ needs.load-docker-build-components.result == 'success' }}
     uses: netcracker/qubership-workflow-hub/.github/workflows/release-drafter.yml@de43c4115d6d3b1547060e7ef2a137aa9ab60fc1 #v1.0.5
     with:
-      version: ${{ needs.get-version.outputs.new_tag }}
+      version: ${{ needs.get-version.outputs.NEW_TAG }}
       publish: true
