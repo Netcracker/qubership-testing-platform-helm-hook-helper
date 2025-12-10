@@ -55,6 +55,8 @@ jobs:
           fi
           echo "components=${components}" >> $GITHUB_OUTPUT
           echo "platforms=${platforms}" >> $GITHUB_OUTPUT
+          echo "components=${components}"
+          echo "platforms=${platforms}"
 
   get-version:
     name: Get latest tag
