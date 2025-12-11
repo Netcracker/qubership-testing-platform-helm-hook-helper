@@ -44,9 +44,6 @@ on:
 permissions:
   contents: read
 
-env:
-  PLATFORMS: linux/amd64,linux/arm64
-
 jobs:
   load-docker-build-components:
     runs-on: ubuntu-latest
@@ -96,6 +93,10 @@ jobs:
       metadata: "${{ steps.metadata.outputs.result }}"
       tags: "${{ steps.prepare_tags.outputs.tags }}"
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        component: ${{ fromJson(needs.load-docker-build-components.outputs.component) }}
     steps:
       - name: "Checkout code"
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
