@@ -43,7 +43,7 @@ on:
       - 'SECURITY.md'
 permissions:
   contents: write
-
+  packages: write
 jobs:
   load-docker-build-components:
     runs-on: ubuntu-latest
@@ -91,7 +91,7 @@ jobs:
       contents: read
     outputs:
       metadata: "${{ steps.metadata.outputs.result }}"
-      tags: "${{ steps.prepare_tags.outputs.tags }}"
+      tags: "${{ steps.prepare_tags.outputs.new_tag }}"
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
