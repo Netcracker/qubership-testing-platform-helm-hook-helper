@@ -143,5 +143,5 @@ jobs:
     if: ${{ needs.docker-build.result == 'success' }}
     uses: netcracker/qubership-workflow-hub/.github/workflows/release-drafter.yml@396774180000abdb825cbf150b56cc59c6913db8 #v2.0.5
     with:
-      version: ${{ steps.prepare_tags.outputs.new_tag }}
+      version: ${{ needs.docker-build.outputs.tags }}
       publish: true
