@@ -4,10 +4,6 @@ run-name: "Dev build repository: ${{ github.ref_name }} #${{ github.run_number }
 on:
   workflow_dispatch:
     inputs:
-      custom-image-name:
-        description: 'Image name. If empty, use repository name'
-        required: false
-        default: ''
       dry-run:
         description: 'Dry run'
         required: false
