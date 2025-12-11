@@ -91,6 +91,7 @@ jobs:
           echo "platforms=${platforms}"
 
   docker-build:
+    needs: [load-docker-build-components]
     name: "Build and Publish Docker Image"
     permissions:
       packages: write
