@@ -42,7 +42,7 @@ on:
       - 'README.md'
       - 'SECURITY.md'
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   load-docker-build-components:
