@@ -4,11 +4,6 @@ run-name: "Dev build repository: ${{ github.ref_name }} #${{ github.run_number }
 on:
   workflow_dispatch:
     inputs:
-      dry-run:
-        description: 'Dry run'
-        required: false
-        type: boolean
-        default: false
       version_type:
         description: 'Version type to release'
         type: choice
