@@ -107,6 +107,7 @@ jobs:
         id: prepare_tags
         run: |
           echo "Check current tag"
+          git fetch --tags
           TAG=$(git tag --list --sort=-v:refname | tr -d '\r' | head -n 1)
           echo "Current tag: $TAG"
 
