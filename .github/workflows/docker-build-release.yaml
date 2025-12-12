@@ -9,7 +9,7 @@ on:
         required: false
         type: boolean
         default: false
-      version-type:
+      version_type:
         description: 'Version type to release'
         type: choice
         options:
@@ -113,10 +113,28 @@ jobs:
           if [[ -z "$TAG" ]]; then
             NEW_TAG="1.0.0"
           else
-            MAJOR=$(echo $TAG | cut -d. -f1)
-            MINOR=$(echo $TAG | cut -d. -f2)
-            PATCH=$(echo $TAG | cut -d. -f3)
-            PATCH=$((PATCH + 1))
+            MAJOR=$(echo "$TAG" | cut -d. -f1)
+            MINOR=$(echo "$TAG" | cut -d. -f2)
+            PATCH=$(echo "$TAG" | cut -d. -f3)
+            if [ "$version_type" == "major" ]; then
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+            elif [ "$version_type" == "minor" ]; then
+              MINOR=$((MINOR + 1))
+              PATCH=0
+            else
+              PATCH=$((PATCH + 1))
+            fi
+            NEW_TAG="$MAJOR.$MINOR.$PATCH"
+          fi
+            if [ "${version-type}" == "major" ]; then
+              MAJOR=$(echo $TAG | cut -d. -f1)
+            elif [ "${version-type}" == "minor" ]; then
+              MINOR=$(echo $TAG | cut -d. -f2)
+            else
+              PATCH=$(echo $TAG | cut -d. -f3)
+              PATCH=$((PATCH + 1))
             NEW_TAG="$MAJOR.$MINOR.$PATCH"
           fi
 
@@ -130,7 +148,7 @@ jobs:
       - name: Build and Publish Docker Image
         uses: netcracker/qubership-workflow-hub/actions/docker-action@396774180000abdb825cbf150b56cc59c6913db8 #v2.0.5
         with:
-          ref: v${{ steps.prepare_tags.outputs.new_tag }}
+          ref: ${{ steps.prepare_tags.outputs.new_tag }}
           component: ${{ toJson(matrix.component) }}
           platforms: ${{ needs.load-docker-build-components.outputs.platforms }}
           dry-run: false
