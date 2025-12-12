@@ -130,8 +130,7 @@ jobs:
       - name: Build and Publish Docker Image
         uses: netcracker/qubership-workflow-hub/actions/docker-action@396774180000abdb825cbf150b56cc59c6913db8 #v2.0.5
         with:
-          ref: v${{ github.ref }}
-          tags: ${{ steps.prepare_tags.outputs.new_tag }}
+          ref: v${{ steps.prepare_tags.outputs.new_tag }}
           component: ${{ toJson(matrix.component) }}
           platforms: ${{ needs.load-docker-build-components.outputs.platforms }}
           dry-run: false
