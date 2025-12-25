@@ -18,8 +18,8 @@ runs:
     - name: Port-forward service
       shell: bash
       run: |
-        kubectl get svc ${{inputs.service_name}} -n env
-        kubectl describe svc ${{inputs.service_name}} -n env
+        kubectl get svc ${{inputs.service_name}}
+        kubectl describe svc ${{inputs.service_name}}
         echo "🚀 Starting kubectl port-forward in background..."
 
         kubectl port-forward svc/${{inputs.service_name}} 8080:8080 -n env > port-forward.log 2>&1 &
