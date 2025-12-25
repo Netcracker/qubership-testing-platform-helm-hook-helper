@@ -213,12 +213,29 @@ runs:
         echo $template_name
         cd ${{inputs.repository_name}}/${{inputs.path_to_chart}}
 
+        set +e
         if [ -n "${{ inputs.docker_tag }}" ]; then
           echo "Using docker_tag: ${{ inputs.docker_tag }}"
           helm ${{inputs.deploy_mode}} ${{inputs.service_name}} . -f $template_name --set-string DOCKER_TAG=${{ inputs.docker_tag }}
         else
          echo "No docker_tag provided. Using value from values-dev.yaml"
          helm ${{inputs.deploy_mode}} ${{inputs.service_name}} . -f $template_name
+        fi
+        HELM_EXIT_CODE=$?
+        set -e
+
+        if [ $HELM_EXIT_CODE -ne 0 ]; then
+          echo "❌ Helm install failed"
+          echo "Waiting for predeploy pod..."
+          kubectl wait --for=condition=ready pod -l job-name=service_name-predeploy-install \
+            --timeout=60s || true
+
+          echo "Get logs for predeploy-install"
+          kubectl logs $(kubectl get pods --selector=job-name=${{inputs.service_name}}-predeploy-install \
+            -o jsonpath='{.items[0].metadata.name}')
+          echo "End logs"
+
+          exit 1
         fi
 
         pod=$(kubectl get pods -o name | grep -vE 'postgres|mongodb|kafka|predeploy' | head -n 1 | cut -d/ -f2)
