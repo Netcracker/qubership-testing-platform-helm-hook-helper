@@ -34,6 +34,18 @@ on:
         required: true
         type: string
         default: ''
+      postgres:
+        required: false
+        type: string
+        default: disable
+      mongo:
+        required: false
+        type: string
+        default: disable
+      kafka:
+        required: false
+        type: string
+        default: disable
 
 jobs:
   Clean_Install:
@@ -77,7 +89,10 @@ jobs:
           path_to_chart: 'deployments/charts/${{ inputs.service_name }}'
           namespace: ${{ inputs.namespace }}
           docker_tag: ${{ inputs.docker_tag }}
-          postgres: enable
+          postgres: ${{ inputs.postgres }}
+          mongo: ${{ inputs.mongo }}
+          kafka: ${{ inputs.kafka }}
+
 
       - name: Verify installation
         uses: ./qubership-testing-platform-helm-hook-helper/.github/actions/shared/verify_installation
