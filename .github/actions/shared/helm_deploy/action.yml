@@ -141,6 +141,15 @@ runs:
       # language=bash
       run: echo "ERROR_FLAG=false" >> $GITHUB_ENV
 
+    - name: Set DOCKER_TAG
+      shell: bash
+      run: |
+        if [[ "${{ github.ref_name }}" == "main" ]]; then
+          echo "DOCKER_TAG=ghcr.io/netcracker/${{inputs.repository_name}}:main_latest" >> $GITHUB_ENV
+        else
+          echo "DOCKER_TAG=ghcr.io/netcracker/${{inputs.repository_name}}:${{ github.ref_name }}_latest" >> $GITHUB_ENV
+        fi
+
     - name: Install Postgres
       if: ${{ inputs.postgres == 'enable' }}
       shell: bash
@@ -214,11 +223,11 @@ runs:
         cd ${{inputs.repository_name}}/${{inputs.path_to_chart}}
 
         set +e
-        if [ -n "${{ inputs.docker_tag }}" ]; then
-          echo "Using docker_tag: ${{ inputs.docker_tag }}"
-          helm ${{inputs.deploy_mode}} ${{inputs.service_name}} . -f $template_name --set-string DOCKER_TAG=${{ inputs.docker_tag }}
+        if [ -n "${{ env.DOCKER_TAG }}" ]; then
+          echo "Using docker_tag: ${{ env.DOCKER_TAG }}"
+          helm ${{inputs.deploy_mode}} ${{inputs.service_name}} . -f $template_name --set-string DOCKER_TAG=${{ env.DOCKER_TAG }}
         else
-         echo "No docker_tag provided. Using value from values-dev.yaml"
+         echo "No DOCKER_TAG provided."
          helm ${{inputs.deploy_mode}} ${{inputs.service_name}} . -f $template_name
         fi
         HELM_EXIT_CODE=$?
@@ -227,7 +236,7 @@ runs:
         if [ $HELM_EXIT_CODE -ne 0 ]; then
           echo "❌ Helm install failed"
           echo "Waiting for predeploy pod..."
-          kubectl wait --for=condition=ready pod -l job-name=service_name-predeploy-install \
+          kubectl wait --for=condition=ready pod -l job-name=${{inputs.service_name}}-predeploy-install \
             --timeout=60s || true
 
           echo "Get logs for predeploy-install"
@@ -238,7 +247,7 @@ runs:
           exit 1
         fi
 
-        pod=$(kubectl get pods -o name | grep -vE 'postgres|mongodb|kafka|predeploy' | head -n 1 | cut -d/ -f2)
+        pod=$(kubectl get pods -o name | grep -vE 'postgres|mongodb|kafka|predeploy|activemq' | head -n 1 | cut -d/ -f2)
         kubectl wait pod "$pod" \
            --for=condition=Ready \
            --timeout=600s || {
