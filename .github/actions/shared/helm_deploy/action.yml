@@ -183,6 +183,8 @@ runs:
       if: ${{ inputs.mongo == 'enable' }}
       shell: bash
       run: |
+        helm repo add bitnami https://charts.bitnami.com/bitnami
+
         helm install my-mongodb bitnami/mongodb \
           --set image.registry=docker.io \
           --set image.repository=bitnamilegacy/mongodb \
@@ -205,6 +207,7 @@ runs:
       run: |
         cd qubership-testing-platform-helm-hook-helper/.github/templates/
         ls -la
+        helm repo add bitnami https://charts.bitnami.com/bitnami
 
         helm install kafka bitnami/kafka \
           --version 25.0.0 \
