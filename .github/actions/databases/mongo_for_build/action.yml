@@ -1,5 +1,17 @@
 name: "Start MongoDB Service"
 description: "Starts a MongoDB Docker container"
+inputs:
+  mongo_user:
+    required: true
+    type: string
+
+  mongo_password:
+    required: true
+    type: string
+
+  mongo_db:
+    required: true
+    type: string
 
 runs:
   using: "composite"
@@ -15,6 +27,20 @@ runs:
           -e MONGO_INITDB_ROOT_PASSWORD="root" \
           -p 27017:27017 \
           mongo:4.2 --bind_ip_all
+
+
+    - name: Create Mongo user
+      shell: bash
+      run: |
+        docker exec mongo mongo dsgridfs \
+          -u root -p root --authenticationDatabase admin \
+          --eval "
+            db.createUser({
+              user: '${{ inputs.mongo_user }}',
+              pwd: '${{ inputs.mongo_password }}',
+              roles: [{ role: 'readWrite', db: '${{ inputs.mongo_db }}' }]
+            })
+          "
 
     - name: Wait for MongoDB to be healthy
       shell: bash
