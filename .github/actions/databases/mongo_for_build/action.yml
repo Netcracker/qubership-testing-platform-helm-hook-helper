@@ -28,20 +28,6 @@ runs:
           -p 27017:27017 \
           mongo:4.2 --bind_ip_all
 
-
-    - name: Create Mongo user
-      shell: bash
-      run: |
-        docker exec mongo mongo dsgridfs \
-          -u root -p root --authenticationDatabase admin \
-          --eval "
-            db.createUser({
-              user: '${{ inputs.mongo_user }}',
-              pwd: '${{ inputs.mongo_password }}',
-              roles: [{ role: 'readWrite', db: '${{ inputs.mongo_db }}' }]
-            })
-          "
-
     - name: Wait for MongoDB to be healthy
       shell: bash
       run: |
@@ -64,3 +50,15 @@ runs:
         echo "MongoDB failed health check"
         exit 1
 
+    - name: Create Mongo user
+      shell: bash
+      run: |
+        docker exec mongo mongo dsgridfs \
+          -u root -p root --authenticationDatabase admin \
+          --eval "
+            db.createUser({
+              user: '${{ inputs.mongo_user }}',
+              pwd: '${{ inputs.mongo_password }}',
+              roles: [{ role: 'readWrite', db: '${{ inputs.mongo_db }}' }]
+            })
+          "
