@@ -46,6 +46,10 @@ on:
         required: false
         type: string
         default: disable
+      apply_kube2vcs:
+        required: false
+        type: string
+        default: disable
 
 jobs:
   Clean_Install:
@@ -92,6 +96,7 @@ jobs:
           postgres: ${{ inputs.postgres }}
           mongo: ${{ inputs.mongo }}
           kafka: ${{ inputs.kafka }}
+          apply_kube2vcs: ${{ inputs.apply_kube2vcs }}
 
 
       - name: Verify installation

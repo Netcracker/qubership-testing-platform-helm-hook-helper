@@ -231,6 +231,10 @@ runs:
         echo $template_name
         cd ${{inputs.repository_name}}/${{inputs.path_to_chart}}
 
+        if [ "${{ inputs.apply_kube2vcs }}" = "enable" ]; then
+          kubectl apply -f kube2vcs.yaml
+        fi
+
         set +e
         if [ -n "${{ env.DOCKER_TAG }}" ]; then
           echo "Using docker_tag: ${{ env.DOCKER_TAG }}"
