@@ -229,10 +229,13 @@ runs:
         # ▶️ ${{inputs.deploy_mode}} with Helm
         template_name=$(basename "${{inputs.path_to_template}}")
         echo $template_name
-        cd ${{inputs.repository_name}}/${{inputs.path_to_chart}}
 
         if [ "${{ inputs.apply_kube2vcs }}" = "enable" ]; then
+          cd qubership-testing-platform-helm-hook-helper/.github/templates/
           kubectl apply -f kube2vcs.yaml
+          cd ${{inputs.repository_name}}/${{inputs.path_to_chart}}
+        else
+          cd ${{inputs.repository_name}}/${{inputs.path_to_chart}}
         fi
 
         set +e
