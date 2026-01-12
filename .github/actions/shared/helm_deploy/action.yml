@@ -233,9 +233,8 @@ runs:
         if [ "${{ inputs.apply_kube2vcs }}" = "enable" ]; then
           cd qubership-testing-platform-helm-hook-helper/.github/templates/
           kubectl apply -f kube2vcs.yaml
-          cd ./${{inputs.repository_name}}/${{inputs.path_to_chart}}
-          ls -la
-          pwd
+          cd ../..
+          cd ${{inputs.repository_name}}/${{inputs.path_to_chart}}
         else
           cd ${{inputs.repository_name}}/${{inputs.path_to_chart}}
         fi
