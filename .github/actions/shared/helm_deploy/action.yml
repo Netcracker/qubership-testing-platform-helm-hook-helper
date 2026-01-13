@@ -234,7 +234,9 @@ runs:
           cd qubership-testing-platform-helm-hook-helper/.github/templates/
           kubectl apply -f kube2vcs.yaml
           cd ../../..
-          cd ${{inputs.repository_name}}/${{inputs.path_to_chart}}
+          ls -la
+          pwd
+          ls -la ${{inputs.repository_name}}/${{inputs.path_to_chart}}
         else
           cd ${{inputs.repository_name}}/${{inputs.path_to_chart}}
         fi
