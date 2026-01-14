@@ -238,6 +238,7 @@ runs:
           ls -la
           pwd
           ls -la ${{inputs.repository_name}}/${{inputs.path_to_chart}}
+          cd ${{inputs.repository_name}}/${{inputs.path_to_chart}}
         else
           cd ${{inputs.repository_name}}/${{inputs.path_to_chart}}
         fi
