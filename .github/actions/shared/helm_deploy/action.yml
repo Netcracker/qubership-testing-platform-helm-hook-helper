@@ -257,9 +257,12 @@ runs:
             --timeout=60s || true
 
           echo "Get logs for predeploy-install"
-          kubectl logs $(kubectl get pods --selector=job-name=${{inputs.service_name}}-predeploy-install \
-            -o jsonpath='{.items[0].metadata.name}')
-          echo "End logs"
+          PODS=$(kubectl get pods -l job-name=${{inputs.service_name}}-predeploy-install -o name)
+          for pod in $PODS; do
+            echo "Describe $pod"
+            kubectl describe $pod
+            echo "End logs"
+          done
 
           exit 1
         fi
