@@ -150,10 +150,12 @@ runs:
           BRANCH_NAME="${{ github.ref_name }}"
         fi
 
+        SAFE_BRANCH="${{ steps.replace_slash.outputs.service_branch_updated }}"
+
         if [[ "$BRANCH_NAME" == "main" ]]; then
           echo "DOCKER_TAG=ghcr.io/netcracker/${{ inputs.repository_name }}:main_latest" >> $GITHUB_ENV
         else
-          echo "DOCKER_TAG=ghcr.io/netcracker/${{ inputs.repository_name }}:${BRANCH_NAME}_latest" >> $GITHUB_ENV
+          echo "DOCKER_TAG=ghcr.io/netcracker/${{ inputs.repository_name }}:${SAFE_BRANCH}_latest" >> $GITHUB_ENV
         fi
 
     - name: Install Postgres
@@ -259,13 +261,16 @@ runs:
           kubectl wait --for=condition=ready pod -l job-name=${{inputs.service_name}}-predeploy-install \
             --timeout=60s || true
 
-          echo "Get logs for predeploy-install"
           PODS=$(kubectl get pods -l job-name=${{inputs.service_name}}-predeploy-install -o name)
           for pod in $PODS; do
             echo "Describe $pod"
             kubectl describe $pod
             echo "End logs"
           done
+          echo "Get logs for predeploy-install"
+          kubectl logs $(kubectl get pods --selector=job-name=${{inputs.service_name}}-predeploy-install \
+            -o jsonpath='{.items[0].metadata.name}')
+          echo "End logs"
 
           exit 1
         fi
