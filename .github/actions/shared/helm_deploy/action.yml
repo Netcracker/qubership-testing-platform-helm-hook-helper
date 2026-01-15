@@ -155,7 +155,7 @@ runs:
         if [[ "$BRANCH_NAME" == "main" ]]; then
           echo "DOCKER_TAG=ghcr.io/netcracker/${{ inputs.repository_name }}:main_latest" >> $GITHUB_ENV
         else
-          echo "DOCKER_TAG=ghcr.io/netcracker/${{ inputs.repository_name }}:${BRANCH_NAME}_latest" >> $GITHUB_ENV
+          echo "DOCKER_TAG=ghcr.io/netcracker/${{ inputs.repository_name }}:test-20260115124246" >> $GITHUB_ENV
         fi
 
     - name: Install Postgres
