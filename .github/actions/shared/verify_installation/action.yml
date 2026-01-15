@@ -75,6 +75,7 @@ runs:
 
     - name: Get logs from all containers in pods
       shell: bash
+      if: always()
       # language=bash
       run: |
         # ▶️ Get logs from all containers in pods
