@@ -208,7 +208,6 @@ runs:
       shell: bash
       run: |
         cd qubership-testing-platform-helm-hook-helper/.github/templates/
-        ls -la
         helm repo add bitnami https://charts.bitnami.com/bitnami
 
         helm install kafka bitnami/kafka \
@@ -217,6 +216,29 @@ runs:
           -f no-auth-values.yaml
 
         pod=$(kubectl get pods -o name | grep -vE 'postgres|mongodb' | head -n 1 | cut -d/ -f2)
+        kubectl wait pod "$pod" \
+           --for=condition=Ready \
+           --timeout=300s || {
+           echo "❌ Pod $pod did not become ready in time"
+           ERROR_FLAG=true
+           exit 1
+        }
+
+    - name: Install ActiveMQ via alfresco
+      if: ${{ inputs.activemq == 'enable' }}
+      shell: bash
+      run: |
+        helm repo add alfresco https://alfresco.github.io/alfresco-helm-charts/
+        helm repo update
+
+        helm install kafka bitnami/kafka \
+          --version 25.0.0 \
+          --create-namespace \
+          -f no-auth-values.yaml
+
+        helm install activemq alfresco/activemq
+
+        pod=$(kubectl get pods -o name | grep -vE 'postgres|mongodb|kafka' | head -n 1 | cut -d/ -f2)
         kubectl wait pod "$pod" \
            --for=condition=Ready \
            --timeout=300s || {
