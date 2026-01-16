@@ -122,19 +122,33 @@ runs:
         cp ${{inputs.path_to_template}} ${{inputs.repository_name}}/${{inputs.path_to_chart}}
         ls -la
 
-    - name: Replace slash in service branch
+    - name: Get branch name
+      id: get_branch
+      shell: bash
+      run: |
+        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          echo "branch=${{ github.head_ref }}" >> $GITHUB_OUTPUT
+        else
+          echo "branch=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Replace slash in branch name
       id: replace_slash
       shell: bash
-      # language=bash
       run: |
-        service_branch="${{inputs.service_branch}}"
-        if [[ "${service_branch}" == *"/"* ]]; then
-          service_branch_updated=$(echo "${service_branch}" | tr '/' '_')
+        SAFE_BRANCH=$(echo "${{ steps.get_branch.outputs.branch }}" | tr '/' '_')
+        echo "service_branch_updated=${SAFE_BRANCH}" >> $GITHUB_OUTPUT
+
+    - name: Set DOCKER_TAG
+      shell: bash
+      run: |
+        SAFE_BRANCH="${{ steps.replace_slash.outputs.service_branch_updated }}"
+
+        if [[ "$SAFE_BRANCH" == "main" ]]; then
+          echo "DOCKER_TAG=ghcr.io/netcracker/${{ inputs.repository_name }}:main_latest" >> $GITHUB_ENV
         else
-          service_branch_updated=${service_branch}
+          echo "DOCKER_TAG=ghcr.io/netcracker/${{ inputs.repository_name }}:${SAFE_BRANCH}_latest" >> $GITHUB_ENV
         fi
-        echo ${service_branch_updated}
-        echo "service_branch_updated=${service_branch_updated}" >> $GITHUB_OUTPUT
 
     - name: Initialize error flag
       shell: bash
