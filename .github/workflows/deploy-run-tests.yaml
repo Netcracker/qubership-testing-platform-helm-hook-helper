@@ -46,6 +46,10 @@ on:
         required: false
         type: string
         default: disable
+      activemq:
+        required: false
+        type: string
+        default: disable
       apply_kube2vcs:
         required: false
         type: string
@@ -96,6 +100,7 @@ jobs:
           postgres: ${{ inputs.postgres }}
           mongo: ${{ inputs.mongo }}
           kafka: ${{ inputs.kafka }}
+          activemq: ${{ inputs.activemq }}
           apply_kube2vcs: ${{ inputs.apply_kube2vcs }}
 
 
