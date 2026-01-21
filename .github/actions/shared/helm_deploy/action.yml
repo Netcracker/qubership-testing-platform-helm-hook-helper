@@ -122,19 +122,33 @@ runs:
         cp ${{inputs.path_to_template}} ${{inputs.repository_name}}/${{inputs.path_to_chart}}
         ls -la
 
-    - name: Replace slash in service branch
+    - name: Get branch name
+      id: get_branch
+      shell: bash
+      run: |
+        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          echo "branch=${{ github.head_ref }}" >> $GITHUB_OUTPUT
+        else
+          echo "branch=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Replace slash in branch name
       id: replace_slash
       shell: bash
-      # language=bash
       run: |
-        service_branch="${{inputs.service_branch}}"
-        if [[ "${service_branch}" == *"/"* ]]; then
-          service_branch_updated=$(echo "${service_branch}" | tr '/' '_')
+        SAFE_BRANCH=$(echo "${{ steps.get_branch.outputs.branch }}" | tr '/' '_')
+        echo "service_branch_updated=${SAFE_BRANCH}" >> $GITHUB_OUTPUT
+
+    - name: Set DOCKER_TAG
+      shell: bash
+      run: |
+        SAFE_BRANCH="${{ steps.replace_slash.outputs.service_branch_updated }}"
+
+        if [[ "$SAFE_BRANCH" == "main" ]]; then
+          echo "DOCKER_TAG=ghcr.io/netcracker/${{ inputs.repository_name }}:main_latest" >> $GITHUB_ENV
         else
-          service_branch_updated=${service_branch}
+          echo "DOCKER_TAG=ghcr.io/netcracker/${{ inputs.repository_name }}:${SAFE_BRANCH}_latest" >> $GITHUB_ENV
         fi
-        echo ${service_branch_updated}
-        echo "service_branch_updated=${service_branch_updated}" >> $GITHUB_OUTPUT
 
     - name: Initialize error flag
       shell: bash
@@ -144,18 +158,18 @@ runs:
     - name: Set DOCKER_TAG
       shell: bash
       run: |
-        if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-          BRANCH_NAME="${{ inputs.service_branch }}"
-        elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
           BRANCH_NAME="${{ github.head_ref }}"
         else
           BRANCH_NAME="${{ github.ref_name }}"
         fi
 
+        SAFE_BRANCH="${{ steps.replace_slash.outputs.service_branch_updated }}"
+
         if [[ "$BRANCH_NAME" == "main" ]]; then
           echo "DOCKER_TAG=ghcr.io/netcracker/${{ inputs.repository_name }}:main_latest" >> $GITHUB_ENV
         else
-          echo "DOCKER_TAG=ghcr.io/netcracker/${{ inputs.repository_name }}:test-20260115124246" >> $GITHUB_ENV
+          echo "DOCKER_TAG=ghcr.io/netcracker/${{ inputs.repository_name }}:${SAFE_BRANCH}_latest" >> $GITHUB_ENV
         fi
 
     - name: Install Postgres
@@ -208,7 +222,6 @@ runs:
       shell: bash
       run: |
         cd qubership-testing-platform-helm-hook-helper/.github/templates/
-        ls -la
         helm repo add bitnami https://charts.bitnami.com/bitnami
 
         helm install kafka bitnami/kafka \
@@ -217,6 +230,24 @@ runs:
           -f no-auth-values.yaml
 
         pod=$(kubectl get pods -o name | grep -vE 'postgres|mongodb' | head -n 1 | cut -d/ -f2)
+        kubectl wait pod "$pod" \
+           --for=condition=Ready \
+           --timeout=300s || {
+           echo "❌ Pod $pod did not become ready in time"
+           ERROR_FLAG=true
+           exit 1
+        }
+
+    - name: Install ActiveMQ via alfresco
+      if: ${{ inputs.activemq == 'enable' }}
+      shell: bash
+      run: |
+        helm repo add alfresco https://alfresco.github.io/alfresco-helm-charts/
+        helm repo update
+
+        helm install activemq alfresco/activemq
+
+        pod=$(kubectl get pods -o name | grep -vE 'postgres|mongodb|kafka' | head -n 1 | cut -d/ -f2)
         kubectl wait pod "$pod" \
            --for=condition=Ready \
            --timeout=300s || {
@@ -258,10 +289,18 @@ runs:
           kubectl wait --for=condition=ready pod -l job-name=${{inputs.service_name}}-predeploy-install \
             --timeout=60s || true
 
+          PODS=$(kubectl get pods -l job-name=${{inputs.service_name}}-predeploy-install -o name)
+          for pod in $PODS; do
+            echo "Describe $pod"
+            kubectl describe $pod
+            echo "End logs"
+          done
           echo "Get logs for predeploy-install"
           kubectl logs $(kubectl get pods --selector=job-name=${{inputs.service_name}}-predeploy-install \
             -o jsonpath='{.items[0].metadata.name}')
           echo "End logs"
+
+          exit 1
         fi
 
         pod=$(kubectl get pods -o name | grep -vE 'postgres|mongodb|kafka|predeploy|activemq' | head -n 1 | cut -d/ -f2)
@@ -271,6 +310,13 @@ runs:
            echo "❌ Pod $pod did not become ready in time"
            ERROR_FLAG=true
         }
+
+    - name: Debug
+      shell: bash
+      if: always()
+      run: |
+        echo "get sc"
+        kubectl get sc
 
     - name: Get docker images
       shell: bash
