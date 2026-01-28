@@ -46,6 +46,10 @@ on:
         required: false
         type: string
         default: disable
+      activemq:
+        required: false
+        type: string
+        default: disable
       apply_kube2vcs:
         required: false
         type: string
@@ -79,7 +83,7 @@ jobs:
       - name: Checkout pipeline
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
-          ref: 'test'
+          ref: 'main'
           repository: 'Netcracker/qubership-testing-platform-helm-hook-helper'
           path: 'qubership-testing-platform-helm-hook-helper'
 
@@ -96,6 +100,7 @@ jobs:
           postgres: ${{ inputs.postgres }}
           mongo: ${{ inputs.mongo }}
           kafka: ${{ inputs.kafka }}
+          activemq: ${{ inputs.activemq }}
           apply_kube2vcs: ${{ inputs.apply_kube2vcs }}
 
 
