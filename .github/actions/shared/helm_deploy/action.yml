@@ -275,10 +275,10 @@ runs:
         set +e
         if [ -n "${{ env.DOCKER_TAG }}" ]; then
           echo "Using docker_tag: ${{ env.DOCKER_TAG }}"
-          helm ${{inputs.deploy_mode}} ${{inputs.service_name}} . -f $template_name --set-string DOCKER_TAG=${{ env.DOCKER_TAG }}
+          helm ${{inputs.deploy_mode}} ${{inputs.service_name}} . -f $template_name --set-string DOCKER_TAG=${{ env.DOCKER_TAG }} --debug
         else
          echo "No DOCKER_TAG provided."
-         helm ${{inputs.deploy_mode}} ${{inputs.service_name}} . -f $template_name
+         helm ${{inputs.deploy_mode}} ${{inputs.service_name}} . -f $template_name --debug
         fi
         HELM_EXIT_CODE=$?
         set -e
