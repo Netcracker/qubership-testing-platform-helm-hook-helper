@@ -105,10 +105,12 @@ runs:
 
               service_log="/${{ inputs.service_name }}/console.log"
               echo "Service log path: $service_log"  >> $file_name
+              dir="/${{ inputs.service_name }}"
               if kubectl exec "$pod" -c "$container" -- test -f "$service_log"; then
                 file_name=artifacts/${{inputs.namespace}}_console_log_${pod}.txt
                 echo "📥 Copying console.log from $pod/$container" >> $file_name
-                kubectl cp "${{ inputs.namespace }}/$pod:$service_log" "$file_name" -c "$container"
+                kubectl cp "$pod:$service_log" "$local_file" -c "$container"
+                kubectl exec "$pod" -c "$container" -- ls -l "$dir" >> $file_name
               fi
             done
         done
