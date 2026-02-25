@@ -93,12 +93,6 @@ runs:
               kubectl logs "$pod" -c "$container" >> $file_name
               echo '================================================================================' >> $file_name
 
-              service_log="/${{ inputs.service_name }}/console.log"
-              if kubectl exec "$pod" -c "$container" -- test -f "$service_log"; then
-                  echo "📥 Fetching console.log from $pod/$container..." >> $file_name
-                  kubectl exec "$pod" -c "$container" -- cat "$service_log" >> $file_name
-                  echo '================================================================================' >> $file_name
-              fi
               restart_count=$(kubectl get pod "$pod" -o jsonpath="{.status.containerStatuses[?(@.name=='$container')].restartCount}")
               if [[ "$restart_count" -gt 0 ]]; then
                 echo "🔁 Previous logs (before restart) for pod: $pod" >> $file_name
@@ -107,6 +101,14 @@ runs:
                   echo "⚠️ Could not fetch previous logs for $pod" >> $file_name
                 fi
                 echo "================================================================================" >> $file_name
+              fi
+
+              service_log="/${{ inputs.service_name }}/console.log"
+              echo "Service log path: $service_log"  >> $file_name
+              if kubectl exec "$pod" -c "$container" -- test -f "$service_log"; then
+                file_name=artifacts/${{inputs.namespace}}_console_log_${pod}.txt
+                echo "📥 Copying console.log from $pod/$container" >> $file_name
+                kubectl cp "${{ inputs.namespace }}/$pod:$service_log" "$file_name" -c "$container"
               fi
             done
         done
