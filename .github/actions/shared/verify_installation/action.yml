@@ -92,11 +92,12 @@ runs:
 
         restart_count=$(kubectl get pod "$pod" -o jsonpath="{.status.containerStatuses[0].restartCount}")
         if [[ "$restart_count" -gt 0 ]]; then
-          echo "🔁 Previous logs (before restart) for pod: $pod"
-          kubectl get pod "$pod" -o yaml >> "$file_name"
-          if ! kubectl logs "$pod" --previous --tail=-1 >> "$file_name"; then
-            echo "⚠️ Could not fetch previous logs for $pod"
+          echo "🔁 Previous logs (before restart) for pod: $pod" >> $file_name
+          echo "----- FULL PREVIOUS LOGS -----" >> $file_name
+          if ! kubectl logs "$pod" --previous >> $file_name 2>&1; then
+            echo "⚠️ Could not fetch previous logs for $pod" >> $file_name
           fi
+          echo "================================================================================" >> $file_name
         fi
 
     - name: Generate artifact name
