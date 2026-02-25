@@ -103,17 +103,20 @@ runs:
                 echo "================================================================================" >> $file_name
               fi
 
-              service_log="/${{ inputs.service_name }}/console.log"
+              pod_status=$(kubectl get pod "$pod" -o jsonpath="{.status.phase}")
+              service_log="/${{ inputs.namespace }}/console.log"
               dir="/${{ inputs.service_name }}"
               echo "ls -la /"  >> $file_name
               kubectl exec "$pod" -c "$container" -- ls -l / >> $file_name
-              if kubectl exec "$pod" -c "$container" -- test -f "$service_log"; then
-                echo "Service log path: $service_log"  >> $file_name
-                local_file="artifacts/${{inputs.namespace}}_console_log_${pod}_${container}.txt"
-                echo "📥 Copying console.log from $pod/$container" >> $file_name
-                kubectl cp "$pod:$service_log" "$local_file" -c "$container"
-                echo "ls -la /"  >> $file_name
-                kubectl exec "$pod" -c "$container" -- ls -l / >> $file_name
+              if [[ "$pod_status" == "Running" ]]; then
+                if kubectl exec "$pod" -c "$container" -- test -f "$service_log"; then
+                  echo "Service log path: $service_log"  >> $file_name
+                  local_file="artifacts/${{inputs.namespace}}_console_log_${pod}_${container}.txt"
+                  echo "📥 Copying console.log from $pod/$container" >> $file_name
+                  kubectl cp "$pod:$service_log" "$local_file" -c "$container"
+                  echo "ls -la /"  >> $file_name
+                  kubectl exec "$pod" -c "$container" -- ls -l / >> $file_name
+                fi
               fi
             done
         done
