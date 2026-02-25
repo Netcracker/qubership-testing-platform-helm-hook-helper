@@ -111,8 +111,6 @@ runs:
                   local_file="artifacts/${{inputs.namespace}}_console_log_${pod}_${container}.txt"
                   echo "📥 Copying console.log from $pod/$container" >> $file_name
                   kubectl cp "$pod:$service_log" "$local_file" -c "$container"
-                  echo "ls -la /"  >> $file_name
-                  kubectl exec "$pod" -c "$container" -- ls -l / >> $file_name
                 fi
               fi
             done
