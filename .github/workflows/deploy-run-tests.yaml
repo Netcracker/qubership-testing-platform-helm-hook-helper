@@ -117,3 +117,10 @@ jobs:
         with:
           repository_name: ${{ inputs.repository_name }}
           service_name: ${{ inputs.service_name }}
+
+      - name: Verify installation
+        uses: ./qubership-testing-platform-helm-hook-helper/.github/actions/shared/verify_installation
+        with:
+          namespace: ${{ inputs.namespace }}
+          service_branch: ${{ inputs.pipeline_branch }}
+          service_name: ${{ inputs.service_name }}
