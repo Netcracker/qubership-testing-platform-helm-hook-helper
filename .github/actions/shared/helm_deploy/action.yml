@@ -258,6 +258,8 @@ runs:
            exit 1
         }
 
+        kubectl exec -it activemq-0 -- cat /opt/activemq/conf/activemq.xml
+
     - name: Install/update service with helm
       shell: bash
       run: |
