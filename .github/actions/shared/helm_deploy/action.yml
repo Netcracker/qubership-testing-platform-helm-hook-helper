@@ -260,6 +260,8 @@ runs:
 
         kubectl exec -it $pod -- cat /opt/activemq/conf/activemq.xml
 
+        kubectl get configmap | grep activemq
+
     - name: Install/update service with helm
       shell: bash
       run: |
