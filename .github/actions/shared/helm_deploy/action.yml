@@ -242,7 +242,10 @@ runs:
       if: ${{ inputs.activemq == 'enable' }}
       shell: bash
       run: |
+        pwd
+        ls -la
         cd qubership-testing-platform-helm-hook-helper/.github/templates/
+        ls -la
         helm repo add alfresco https://alfresco.github.io/alfresco-helm-charts/
         helm repo update
 
