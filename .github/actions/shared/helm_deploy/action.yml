@@ -262,6 +262,8 @@ runs:
 
         kubectl get configmap | grep activemq
 
+        kubectl get configmap activemq-custom-config -o yaml
+
     - name: Install/update service with helm
       shell: bash
       run: |
