@@ -245,8 +245,7 @@ runs:
         helm repo add alfresco https://alfresco.github.io/alfresco-helm-charts/
         helm repo update
 
-        helm install activemq bitnami/activemq \
-          --set image.tag=5.18.7
+        helm upgrade --install activemq alfresco/activemq -f .github/templates/values.yaml
 
         pod=$(kubectl get pods -o name | grep -vE 'postgres|mongodb|kafka' | head -n 1 | cut -d/ -f2)
         kubectl wait pod "$pod" \
