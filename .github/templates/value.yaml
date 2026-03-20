@@ -1,9 +1,2 @@
-extraVolumes:
-  - name: activemq-config
-    configMap:
-      name: activemq-custom-config
-
-extraVolumeMounts:
-  - name: activemq-config
-    mountPath: /opt/activemq/conf/activemq.xml
-    subPath: activemq.xml
+configuration:
+  existingConfigMap: activemq-custom-config
