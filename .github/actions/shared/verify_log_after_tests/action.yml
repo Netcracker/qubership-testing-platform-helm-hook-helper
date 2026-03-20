@@ -19,7 +19,7 @@ runs:
         # ▶️ Get logs from all containers in pods
         echo "Artifact is ${{ inputs.artifact_name }}"
         echo "Artifact is ${{inputs.artifact_name}}"
-        file_name=artifacts/${{inputs.namespace}}_log_from_containers.txt
+        file_name=artifacts/${{inputs.namespace}}_log_from_containers_after_tests.txt
         IFS=' ' read -ra pods <<< $(kubectl get pods --no-headers -o custom-columns=":metadata.name" -n ${{inputs.namespace}} | tr $'\n' ' ')
         echo "Logs from all containers in pods: " > $file_name
         for pod in "${pods[@]}"; do
