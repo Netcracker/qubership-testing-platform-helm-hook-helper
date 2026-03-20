@@ -244,10 +244,10 @@ runs:
       run: |
 
         cd qubership-testing-platform-helm-hook-helper/.github/templates/
-        helm repo add alfresco https://alfresco.github.io/alfresco-helm-charts/
+        helm repo add bitnami https://charts.bitnami.com/bitnami
         helm repo update
 
-        helm upgrade --install activemq alfresco/activemq -f value.yaml
+        helm upgrade --install activemq bitnami/activemq -f values.yaml
 
         pod=$(kubectl get pods -o name | grep -vE 'postgres|mongodb|kafka' | head -n 1 | cut -d/ -f2)
         kubectl wait pod "$pod" \
