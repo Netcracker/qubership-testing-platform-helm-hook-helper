@@ -118,10 +118,9 @@ jobs:
           repository_name: ${{ inputs.repository_name }}
           service_name: ${{ inputs.service_name }}
 
-      - name: Verify installation
+      - name: Verify logs after tests
         if: always()
-        uses: ./qubership-testing-platform-helm-hook-helper/.github/actions/shared/verify_installation
+        uses: ./qubership-testing-platform-helm-hook-helper/.github/actions/shared/verify_log_after_tests
         with:
           namespace: ${{ inputs.namespace }}
-          service_branch: ${{ inputs.pipeline_branch }}
-          service_name: ${{ inputs.service_name }}
+          artifact_name: ${{ inputs.artifact_name }}
