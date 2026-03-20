@@ -263,6 +263,10 @@ runs:
         kubectl get configmap | grep activemq
 
         kubectl get configmap activemq-custom-config -o yaml
+        echo "describe with grep"
+        kubectl describe pod $pod | grep -A20 Volumes
+        echo "describe"
+        kubectl describe pod $pod
 
     - name: Install/update service with helm
       shell: bash
