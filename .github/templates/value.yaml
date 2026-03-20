@@ -1,3 +1,6 @@
+auth:
+  enabled: false
+
 configuration:
   brokerXmlOverride: |
     <broker xmlns="http://activemq.apache.org/schema/core"
