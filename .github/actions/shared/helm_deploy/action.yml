@@ -242,14 +242,12 @@ runs:
       if: ${{ inputs.activemq == 'enable' }}
       shell: bash
       run: |
-        pwd
-        ls -la
+
         cd qubership-testing-platform-helm-hook-helper/.github/templates/
-        ls -la
         helm repo add alfresco https://alfresco.github.io/alfresco-helm-charts/
         helm repo update
 
-        helm upgrade --install activemq alfresco/activemq -f values.yaml
+        helm upgrade --install activemq alfresco/activemq -f value.yaml
 
         pod=$(kubectl get pods -o name | grep -vE 'postgres|mongodb|kafka' | head -n 1 | cut -d/ -f2)
         kubectl wait pod "$pod" \
