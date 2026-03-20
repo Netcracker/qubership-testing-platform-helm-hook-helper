@@ -244,10 +244,8 @@ runs:
       run: |
 
         cd qubership-testing-platform-helm-hook-helper/.github/templates/
-        helm repo add alfresco https://alfresco.github.io/alfresco-helm-charts/
-        helm repo update
-        kubectl apply -f activemq-config.yaml
-        helm upgrade --install activemq alfresco/activemq -f value.yaml
+        kubectl apply -f activemq-deployment.yaml
+        kubectl apply -f activemq-service.yaml
 
         pod=$(kubectl get pods -o name | grep -vE 'postgres|mongodb|kafka' | head -n 1 | cut -d/ -f2)
         kubectl wait pod "$pod" \
