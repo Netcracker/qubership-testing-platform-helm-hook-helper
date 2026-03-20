@@ -245,6 +245,9 @@ runs:
         helm repo add alfresco https://alfresco.github.io/alfresco-helm-charts/
         helm repo update
 
+        helm template activemq alfresco/activemq
+        helm template activemq alfresco/activemq | grep -n "activemq.xml
+
         helm install activemq alfresco/activemq
 
         pod=$(kubectl get pods -o name | grep -vE 'postgres|mongodb|kafka' | head -n 1 | cut -d/ -f2)
