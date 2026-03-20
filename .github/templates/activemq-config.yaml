@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: activemq-custom-config
+data:
+  activemq.xml: |
+    <broker xmlns="http://activemq.apache.org/schema/core"
+            brokerName="localhost"
+            dataDirectory="${activemq.data}">
+
+      <transportConnectors>
+        <transportConnector name="openwire" uri="tcp://0.0.0.0:61616"/>
+      </transportConnectors>
+
+      <plugins>
+        <simpleAuthenticationPlugin anonymousAccessAllowed="true"/>
+
+        <authorizationPlugin>
+          <map>
+            <authorizationMap>
+              <authorizationEntries>
+                <authorizationEntry queue=">" read="anonymous" write="anonymous" admin="anonymous"/>
+                <authorizationEntry topic=">" read="anonymous" write="anonymous" admin="anonymous"/>
+              </authorizationEntries>
+            </authorizationMap>
+          </map>
+        </authorizationPlugin>
+
+      </plugins>
+
+    </broker>
