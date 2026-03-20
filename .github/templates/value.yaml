@@ -6,6 +6,18 @@ configuration:
 
       <plugins>
         <simpleAuthenticationPlugin anonymousAccessAllowed="true"/>
+
+        <authorizationPlugin>
+          <map>
+            <authorizationMap>
+              <authorizationEntries>
+                <authorizationEntry queue=">" read="anonymous,admins" write="anonymous,admins" admin="anonymous,admins"/>
+                <authorizationEntry topic=">" read="anonymous,admins" write="anonymous,admins" admin="anonymous,admins"/>
+              </authorizationEntries>
+            </authorizationMap>
+          </map>
+        </authorizationPlugin>
+
       </plugins>
 
     </broker>
