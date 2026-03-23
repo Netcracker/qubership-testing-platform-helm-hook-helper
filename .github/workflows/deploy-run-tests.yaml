@@ -112,7 +112,6 @@ jobs:
 
       - name: Verify installation
         if: always()
-        id: verify_install
         uses: ./qubership-testing-platform-helm-hook-helper/.github/actions/shared/verify_installation
         with:
           namespace: ${{ inputs.namespace }}
