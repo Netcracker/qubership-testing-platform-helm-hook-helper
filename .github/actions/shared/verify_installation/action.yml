@@ -16,11 +16,6 @@ inputs:
       Helm release name
     required: true
 
-outputs:
-  artifact_name:
-    description: "Generated artifact name"
-    value: ${{ steps.generate.outputs.ARTIFACT_NAME }}
-
 runs:
   using: 'composite'
   steps:
@@ -123,7 +118,6 @@ runs:
 
 
     - name: Generate artifact name
-      id: generate
       if: always()
       shell: bash
       # language=bash
@@ -135,7 +129,6 @@ runs:
         fi
         ARTIFACT_NAME=${{github.job}}_${{inputs.namespace}}${release_name}_artifacts_$(date -u +'%Y%m%d%H%M%S')
         echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_ENV
-        echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
 
     - name: Upload artifact
       if: always()
