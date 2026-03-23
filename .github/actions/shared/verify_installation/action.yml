@@ -18,7 +18,8 @@ inputs:
 
 outputs:
   artifact_name:
-    value: ${{ steps.gen.outputs.ARTIFACT_NAME }}
+    description: "Generated artifact name"
+    value: ${{ steps.generate.outputs.ARTIFACT_NAME }}
 
 runs:
   using: 'composite'
@@ -122,6 +123,7 @@ runs:
 
 
     - name: Generate artifact name
+      id: generate
       if: always()
       shell: bash
       # language=bash

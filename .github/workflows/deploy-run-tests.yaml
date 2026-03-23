@@ -105,6 +105,7 @@ jobs:
 
 
       - name: Verify installation
+        id: verify_install
         uses: ./qubership-testing-platform-helm-hook-helper/.github/actions/shared/verify_installation
         with:
           namespace: ${{ inputs.namespace }}
@@ -123,4 +124,4 @@ jobs:
         uses: ./qubership-testing-platform-helm-hook-helper/.github/actions/shared/verify_log_after_tests
         with:
           namespace: ${{ inputs.namespace }}
-          artifact_name: ${{ inputs.artifact_name }}
+          artifact_name: ${{ steps.verify_install.outputs.artifact_name }}
