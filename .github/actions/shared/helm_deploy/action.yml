@@ -244,10 +244,8 @@ runs:
       run: |
 
         cd qubership-testing-platform-helm-hook-helper/.github/templates/
-        helm repo add bitnami https://charts.bitnami.com/bitnami
-        helm repo update
-
-        helm upgrade --install activemq bitnami/activemq -f values.yaml
+        kubectl apply -f activemq-deployment.yaml
+        kubectl apply -f activemq-service.yaml
 
         pod=$(kubectl get pods -o name | grep -vE 'postgres|mongodb|kafka' | head -n 1 | cut -d/ -f2)
         kubectl wait pod "$pod" \
@@ -257,8 +255,6 @@ runs:
            ERROR_FLAG=true
            exit 1
         }
-
-        kubectl exec -it $pod -- cat /opt/activemq/conf/activemq.xml
 
     - name: Install/update service with helm
       shell: bash
