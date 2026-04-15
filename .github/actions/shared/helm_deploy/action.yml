@@ -285,19 +285,29 @@ runs:
 
         if [ $HELM_EXIT_CODE -ne 0 ]; then
           echo "❌ Helm install failed"
+          NS="${{ inputs.namespace }}"
           echo "Waiting for predeploy pod..."
-          kubectl wait --for=condition=ready pod -l job-name=${{inputs.service_name}}-predeploy-install \
+          kubectl wait --for=condition=ready pod -n "$NS" -l job-name=${{inputs.service_name}}-predeploy-install \
             --timeout=60s || true
 
-          PODS=$(kubectl get pods -l job-name=${{inputs.service_name}}-predeploy-install -o name)
+          PODS=$(kubectl get pods -n "$NS" -l job-name=${{inputs.service_name}}-predeploy-install -o name)
           for pod in $PODS; do
             echo "Describe $pod"
-            kubectl describe $pod
-            echo "End logs"
+            kubectl describe -n "$NS" $pod
+            echo "End describe"
           done
-          echo "Get logs for predeploy-install"
-          kubectl logs $(kubectl get pods --selector=job-name=${{inputs.service_name}}-predeploy-install \
-            -o jsonpath='{.items[0].metadata.name}')
+          POD_NAME=$(kubectl get pods -n "$NS" --selector=job-name=${{inputs.service_name}}-predeploy-install \
+            -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
+          if [ -n "$POD_NAME" ]; then
+            for c in $(kubectl get pod "$POD_NAME" -n "$NS" -o jsonpath='{.spec.initContainers[*].name}' 2>/dev/null); do
+              echo "=== kubectl logs (init): pod=$POD_NAME namespace=$NS container=$c ==="
+              kubectl logs "$POD_NAME" -n "$NS" -c "$c" 2>&1 || echo "(init logs unavailable for $c)"
+            done
+            echo "=== kubectl logs (main): pod=$POD_NAME job=predeploy-install ==="
+            kubectl logs "$POD_NAME" -n "$NS" 2>&1 || echo "(main container logs unavailable)"
+          else
+            echo "No predeploy pod found for selector job-name=${{inputs.service_name}}-predeploy-install"
+          fi
           echo "End logs"
 
           exit 1
