@@ -1,4 +1,4 @@
-FROM bellsoft/liberica-openjdk-alpine-musl:8u402
+FROM bellsoft/liberica-openjdk-alpine-musl:21.0.10
 
 ENV NODE_ENV=production
 
