@@ -6,7 +6,7 @@ RUN apk add --update --no-cache \
       kubectl=1.34.2-r5 \
       nodejs-current=24.9.0-r1 \
       npm=11.11.0-r0 \
-      postgresql14-client \
+      postgresql16-client \
       bash \
       jq=1.8.1-r0 && \
     npm set prefer-dedupe=true strict-ssl=false && \
