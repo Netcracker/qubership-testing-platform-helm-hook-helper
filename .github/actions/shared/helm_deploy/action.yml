@@ -9,14 +9,6 @@ inputs:
     required: true
     default: 'install'
 
-  restricted:
-    description: |
-      - 'true': helm installation by user with restricted rights
-      - 'false': helm installation by cluster admin user
-    required: true
-    default: 'false'
-    type: boolean
-
   path_to_template:
     description: |
       Path to template file in qubership-test-pipelines repository
@@ -50,15 +42,10 @@ inputs:
       Kubernetes namespace for service installation
     required: true
 
-  helm_charts_release_config:
-    description: |
-      Path to helm-charts-release-config.yaml in pipeline repository
-    required: false
-
   resource_folder:
     description: |
       Folder with resources for creating before installation
-    required: true
+    required: false
 
   docker_tag:
     description: "Full docker image"
@@ -76,6 +63,16 @@ inputs:
 
   kafka:
     description: "Kafka installation"
+    required: false
+    default: 'disable'
+
+  activemq:
+    description: "ActiveMQ installation"
+    required: false
+    default: 'disable'
+
+  apply_kube2vcs:
+    description: "Apply kube2vcs"
     required: false
     default: 'disable'
 
@@ -139,23 +136,13 @@ runs:
         SAFE_BRANCH=$(echo "${{ steps.get_branch.outputs.branch }}" | tr '/' '_')
         echo "service_branch_updated=${SAFE_BRANCH}" >> $GITHUB_OUTPUT
 
-    - name: Set DOCKER_TAG
-      shell: bash
-      run: |
-        SAFE_BRANCH="${{ steps.replace_slash.outputs.service_branch_updated }}"
-
-        if [[ "$SAFE_BRANCH" == "main" ]]; then
-          echo "DOCKER_TAG=ghcr.io/netcracker/${{ inputs.repository_name }}:main_latest" >> $GITHUB_ENV
-        else
-          echo "DOCKER_TAG=ghcr.io/netcracker/${{ inputs.repository_name }}:${SAFE_BRANCH}_latest" >> $GITHUB_ENV
-        fi
-
     - name: Initialize error flag
       shell: bash
       # language=bash
       run: echo "ERROR_FLAG=false" >> $GITHUB_ENV
 
     - name: Set DOCKER_TAG
+      if: inputs.docker_tag == ''
       shell: bash
       run: |
         if [[ "${{ github.event_name }}" == "pull_request" ]]; then
@@ -171,6 +158,12 @@ runs:
         else
           echo "DOCKER_TAG=ghcr.io/netcracker/${{ inputs.repository_name }}:${SAFE_BRANCH}_latest" >> $GITHUB_ENV
         fi
+
+    - name: Set DOCKER_TAG from input
+      if: inputs.docker_tag != ''
+      shell: bash
+      run: |
+        echo "DOCKER_TAG=${{ inputs.docker_tag }}" >> $GITHUB_ENV
 
     - name: Install Postgres
       if: ${{ inputs.postgres == 'enable' }}
@@ -242,10 +235,10 @@ runs:
       if: ${{ inputs.activemq == 'enable' }}
       shell: bash
       run: |
+        helm repo add alfresco https://alfresco.github.io/alfresco-helm-charts/
+        helm repo update
 
-        cd qubership-testing-platform-helm-hook-helper/.github/templates/
-        kubectl apply -f activemq-deployment.yaml
-        kubectl apply -f activemq-service.yaml
+        helm install activemq alfresco/activemq
 
         pod=$(kubectl get pods -o name | grep -vE 'postgres|mongodb|kafka' | head -n 1 | cut -d/ -f2)
         kubectl wait pod "$pod" \
@@ -275,10 +268,10 @@ runs:
         set +e
         if [ -n "${{ env.DOCKER_TAG }}" ]; then
           echo "Using docker_tag: ${{ env.DOCKER_TAG }}"
-          helm ${{inputs.deploy_mode}} ${{inputs.service_name}} . -f $template_name --set-string DOCKER_TAG=${{ env.DOCKER_TAG }}
+          helm ${{inputs.deploy_mode}} ${{inputs.service_name}} . -f $template_name --set-string DOCKER_TAG=${{ env.DOCKER_TAG }} --debug
         else
          echo "No DOCKER_TAG provided."
-         helm ${{inputs.deploy_mode}} ${{inputs.service_name}} . -f $template_name
+         helm ${{inputs.deploy_mode}} ${{inputs.service_name}} . -f $template_name --debug
         fi
         HELM_EXIT_CODE=$?
         set -e
@@ -310,6 +303,13 @@ runs:
            echo "❌ Pod $pod did not become ready in time"
            ERROR_FLAG=true
         }
+
+    - name: Debug
+      shell: bash
+      if: always()
+      run: |
+        echo "get sc"
+        kubectl get sc
 
     - name: Get docker images
       shell: bash
