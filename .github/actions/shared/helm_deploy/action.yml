@@ -51,6 +51,11 @@ inputs:
     description: "Full docker image"
     required: false
 
+  transfer_image:
+    description: "Transfer image that contains the Helm chart"
+    required: false
+    default: ''
+
   postgres:
     description: "Postgres installation"
     required: false
@@ -112,6 +117,7 @@ runs:
         done
 
     - name: Name template
+      if: inputs.transfer_image == ''
       shell: bash
       # language=bash
       run: |
@@ -120,6 +126,7 @@ runs:
         ls -la
 
     - name: Get branch name
+      if: inputs.transfer_image == ''
       id: get_branch
       shell: bash
       run: |
@@ -130,6 +137,7 @@ runs:
         fi
 
     - name: Replace slash in branch name
+      if: inputs.transfer_image == ''
       id: replace_slash
       shell: bash
       run: |
@@ -249,6 +257,22 @@ runs:
            exit 1
         }
 
+    - name: Extract chart from transfer image
+      if: inputs.transfer_image != ''
+      shell: bash
+      run: |
+        TRANSFER_IMAGE="${{ inputs.transfer_image }}"
+        CHART_IN_IMAGE="${{ inputs.path_to_chart }}"
+        CHART_IN_IMAGE="/${CHART_IN_IMAGE#/}"
+        CHART_OUT="./extracted-chart"
+
+        docker pull "$TRANSFER_IMAGE"
+        docker run ${TRANSFER_IMAGE} /bin/true || true
+        docker cp ${containername}:/deployments .
+        ls -la deployments/
+        docker cp ${containername}:/scripts .
+        ls -la scripts/
+
     - name: Install/update service with helm
       shell: bash
       run: |
@@ -304,16 +328,8 @@ runs:
            ERROR_FLAG=true
         }
 
-    - name: Debug
-      shell: bash
-      if: always()
-      run: |
-        echo "get sc"
-        kubectl get sc
-
     - name: Get docker images
       shell: bash
-      # language=bash
       run: |
         # ▶️ Get docker images
         kubectl get pods -o go-template --template="{{range .items}}{{range .spec.containers}}{{.image}} {{end}}{{end}}"

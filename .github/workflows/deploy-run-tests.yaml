@@ -16,6 +16,10 @@ on:
         required: false
         type: string
         description: 'Docker Image for rollout'
+      transfer_image:
+        required: false
+        type: string
+        description: 'Transfer image'
       pipeline_branch:
         description: 'Test pipeline branch name'
         type: string
@@ -97,6 +101,7 @@ jobs:
           path_to_chart: 'deployments/charts/${{ inputs.service_name }}'
           namespace: ${{ inputs.namespace }}
           docker_tag: ${{ inputs.docker_tag }}
+          transfer_image: ${{ inputs.transfer_image }}
           postgres: ${{ inputs.postgres }}
           mongo: ${{ inputs.mongo }}
           kafka: ${{ inputs.kafka }}
