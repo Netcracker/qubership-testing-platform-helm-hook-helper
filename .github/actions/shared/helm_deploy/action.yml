@@ -268,8 +268,11 @@ runs:
 
         containername="transfer-${{ github.run_id }}-${RANDOM}"
         docker run --name ${containername} ${TRANSFER_IMAGE} /bin/true || true
+        ls -la
+        pwd
         docker cp ${containername}:/deployments .
         ls -la deployments/
+        pwd
         docker cp ${containername}:/scripts .
         ls -la scripts/
 
