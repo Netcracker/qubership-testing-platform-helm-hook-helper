@@ -279,6 +279,10 @@ runs:
         template_name=$(basename "${{inputs.path_to_template}}")
         echo $template_name
 
+        ls -la
+        pwd
+        find . -type f -name 'values-dev.yaml'
+        
         if [ "${{ inputs.apply_kube2vcs }}" = "enable" ]; then
           cd qubership-testing-platform-helm-hook-helper/.github/templates/
           kubectl apply -f kube2vcs.yaml
@@ -287,6 +291,10 @@ runs:
         else
           cd ${{inputs.repository_name}}/${{inputs.path_to_chart}}
         fi
+
+        ls -la
+        pwd
+        find . -type f -name 'values-dev.yaml'
 
         set +e
         if [ -n "${{ env.DOCKER_TAG }}" ]; then
