@@ -262,12 +262,12 @@ runs:
       shell: bash
       run: |
         TRANSFER_IMAGE="${{ inputs.transfer_image }}"
-        CHART_IN_IMAGE="${{ inputs.path_to_chart }}"
-        CHART_IN_IMAGE="/${CHART_IN_IMAGE#/}"
-        CHART_OUT="./extracted-chart"
+        echo "Transfer image: $TRANSFER_IMAGE"
 
         docker pull "$TRANSFER_IMAGE"
-        docker run ${TRANSFER_IMAGE} /bin/true || true
+
+        containername="transfer-${{ github.run_id }}-${RANDOM}"
+        docker run --name ${containername} ${TRANSFER_IMAGE} /bin/true || true
         docker cp ${containername}:/deployments .
         ls -la deployments/
         docker cp ${containername}:/scripts .
