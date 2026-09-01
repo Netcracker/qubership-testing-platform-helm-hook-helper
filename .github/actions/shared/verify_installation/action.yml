@@ -24,11 +24,6 @@ runs:
       # language=bash
       run: mkdir -p artifacts
 
-    - name: Initialize error flag
-      shell: bash
-      # language=bash
-      run: echo "ERROR_FLAG=false" >> $GITHUB_ENV
-
     - name: Get pods
       shell: bash
       # language=bash

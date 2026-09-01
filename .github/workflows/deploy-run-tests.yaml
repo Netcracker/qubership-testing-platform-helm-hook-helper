@@ -64,9 +64,6 @@ jobs:
     runs-on: ubuntu-latest
     name: Clean Install
     steps:
-      - name: Get current workflow branch
-        id: get_branch
-        run: |
       - name: Checkout pipeline
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:

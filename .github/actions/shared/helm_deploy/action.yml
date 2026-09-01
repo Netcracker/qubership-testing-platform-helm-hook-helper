@@ -116,17 +116,8 @@ runs:
           kubectl create -f "$file"
         done
 
-    - name: Name template
-      if: inputs.transfer_image == ''
-      shell: bash
-      # language=bash
-      run: |
-        echo ${{inputs.path_to_template}}
-        cp ${{inputs.path_to_template}} ${{inputs.repository_name}}/${{inputs.path_to_chart}}
-        ls -la
-
     - name: Get branch name
-      if: inputs.transfer_image == ''
+      if: inputs.docker_tag == ''
       id: get_branch
       shell: bash
       run: |
@@ -137,7 +128,7 @@ runs:
         fi
 
     - name: Replace slash in branch name
-      if: inputs.transfer_image == ''
+      if: inputs.docker_tag == ''
       id: replace_slash
       shell: bash
       run: |
@@ -227,7 +218,6 @@ runs:
 
         helm install kafka bitnami/kafka \
           --version 25.0.0 \
-          --create-namespace \
           -f no-auth-values.yaml
 
         pod=$(kubectl get pods -o name | grep -vE 'postgres|mongodb' | head -n 1 | cut -d/ -f2)
@@ -271,6 +261,18 @@ runs:
         docker cp ${containername}:/deployments .
         ls -la deployments/
 
+    - name: Name template
+      shell: bash
+      # language=bash
+      run: |
+        echo ${{inputs.path_to_template}}
+        if [ -n "${{ inputs.transfer_image }}" ]; then
+          cp ${{inputs.path_to_template}} ${{inputs.path_to_chart}}
+        else
+          cp ${{inputs.path_to_template}} ${{inputs.repository_name}}/${{inputs.path_to_chart}}
+        fi
+        ls -la
+
     - name: Install/update service with helm
       shell: bash
       run: |
@@ -282,22 +284,22 @@ runs:
           cd qubership-testing-platform-helm-hook-helper/.github/templates/
           kubectl apply -f kube2vcs.yaml
           cd ../../..
-          cd ${{inputs.repository_name}}/${{inputs.path_to_chart}}
+        fi
+
+        if [ -n "${{ inputs.transfer_image }}" ]; then
+          cd ${{inputs.path_to_chart}}
         else
           cd ${{inputs.repository_name}}/${{inputs.path_to_chart}}
         fi
 
-        ls -la
-        pwd
-        find . -type f -name 'values-dev.yaml'
-
         set +e
-        if [ -n "${{ env.DOCKER_TAG }}" ]; then
-          echo "Using docker_tag: ${{ env.DOCKER_TAG }}"
-          helm ${{inputs.deploy_mode}} ${{inputs.service_name}} . -f "${GITHUB_WORKSPACE}/${{inputs.repository_name}}/.github/deploy_templates/$template_name" --set-string DOCKER_TAG=${{ env.DOCKER_TAG }} --debug
-        else
-         echo "No DOCKER_TAG provided."
-         helm ${{inputs.deploy_mode}} ${{inputs.service_name}} . -f $template_name --debug
+        if [ -n "${{ inputs.docker_tag }}" ] && [ -n "${{ inputs.transfer_image }}" ]; then
+          echo "Using docker_tag: ${{ inputs.docker_tag }}"
+          echo "Using transfer image: ${{inputs.transfer_image}}"
+          helm ${{inputs.deploy_mode}} ${{inputs.service_name}} . -f "${GITHUB_WORKSPACE}/${{ inputs.path_to_template }}" --set-string DOCKER_TAG=${{ env.DOCKER_TAG }}
+        elif [ -z "${{ inputs.docker_tag }}" ] && [ -z "${{ inputs.transfer_image }}" ]; then
+         echo "DOCKER_TAG calculated from branch name."
+         helm ${{inputs.deploy_mode}} ${{inputs.service_name}} . -f $template_name --set-string DOCKER_TAG=${{ env.DOCKER_TAG }}
         fi
         HELM_EXIT_CODE=$?
         set -e

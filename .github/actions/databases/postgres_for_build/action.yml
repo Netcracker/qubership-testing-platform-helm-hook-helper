@@ -53,6 +53,12 @@ runs:
           sleep 5
         done
 
+        if ! docker exec pg_service pg_isready -U postgres -d "${{ inputs.postgresql_database }}"; then
+          echo "Postgres did not become ready after 30 attempts"
+          docker logs pg_service
+          exit 1
+        fi
+
     - name: Create uuid-ossp extension
       shell: bash
       run: |
