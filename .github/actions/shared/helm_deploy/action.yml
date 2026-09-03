@@ -296,10 +296,10 @@ runs:
         if [ -n "${{ inputs.docker_tag }}" ] && [ -n "${{ inputs.transfer_image }}" ]; then
           echo "Using docker_tag: ${{ inputs.docker_tag }}"
           echo "Using transfer image: ${{inputs.transfer_image}}"
-          helm ${{inputs.deploy_mode}} ${{inputs.service_name}} . -f "${GITHUB_WORKSPACE}/${{ inputs.path_to_template }}" --set-string DOCKER_TAG=${{ env.DOCKER_TAG }}
+          helm ${{inputs.deploy_mode}} ${{inputs.service_name}} . -f "${GITHUB_WORKSPACE}/${{ inputs.path_to_template }}" --set-string DOCKER_TAG=${{ env.DOCKER_TAG }} --debug
         elif [ -z "${{ inputs.docker_tag }}" ] && [ -z "${{ inputs.transfer_image }}" ]; then
-         echo "DOCKER_TAG calculated from branch name."
-         helm ${{inputs.deploy_mode}} ${{inputs.service_name}} . -f $template_name --set-string DOCKER_TAG=${{ env.DOCKER_TAG }}
+         echo "DOCKER_TAG calculated from branch name"
+         helm ${{inputs.deploy_mode}} ${{inputs.service_name}} . -f $template_name --set-string DOCKER_TAG=${{ env.DOCKER_TAG }} --debug
         fi
         HELM_EXIT_CODE=$?
         set -e
